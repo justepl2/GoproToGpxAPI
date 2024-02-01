@@ -7,6 +7,7 @@ import (
 
 	"github.com/gorilla/mux"
 	"github.com/justepl2/gopro_to_gpx_api/infrastructure/http/ping"
+	"github.com/justepl2/gopro_to_gpx_api/infrastructure/http/videos"
 )
 
 // Run start server
@@ -18,7 +19,7 @@ func Run(port int) error {
 func NewRouter() *mux.Router {
 	router := mux.NewRouter()
 	router.HandleFunc("/ping", ping.Get).Methods("GET")
-	// router.HandleFunc("/gpx", handler.HandleRequest).Methods("GET")
+	router.HandleFunc("/video", videos.Create).Methods("POST")
 
 	return router
 }
