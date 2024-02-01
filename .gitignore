@@ -4,3 +4,5 @@ docker/
 .vscode/
 
 src/__debug_bin
+
+src/infrastructure/http/videos/__debug_bin

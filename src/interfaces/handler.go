@@ -18,8 +18,13 @@ func Run(port int) error {
 
 func NewRouter() *mux.Router {
 	router := mux.NewRouter()
+	// HealthCheck endpoint
 	router.HandleFunc("/ping", ping.Get).Methods("GET")
-	router.HandleFunc("/video", videos.Create).Methods("POST")
 
+	// Videos endpoints
+	router.HandleFunc("/video", videos.Create).Methods("POST")
+	router.HandleFunc("/video", videos.Create).Methods("GET")
+
+	// GPX endpoints
 	return router
 }
