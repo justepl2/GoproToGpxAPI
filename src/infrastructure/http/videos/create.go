@@ -21,6 +21,12 @@ func Create(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	err = requestVideo.Validate()
+	if err != nil {
+		tools.FormatResponseBody(w, http.StatusBadRequest, err.Error())
+		return
+	}
+
 	video.FromRequest(requestVideo)
 	err = application.AddVideo(&video)
 	if err != nil {
