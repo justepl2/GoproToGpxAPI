@@ -1,10 +1,15 @@
 package request
 
-import "errors"
+import (
+	"errors"
+	"net/http"
+	"os"
+	"strings"
+)
 
 type CreateVideo struct {
-	Name     string  `json:"name"`
-	Duration float64 `json:"duration"`
+	Name     string `json:"name"`
+	FilePath string `json:"filePath"`
 }
 
 func (cv *CreateVideo) Validate() error {
@@ -12,8 +17,27 @@ func (cv *CreateVideo) Validate() error {
 		return errors.New("name is required")
 	}
 
-	if cv.Duration <= 0 {
-		return errors.New("duration must be greater than 0")
+	if cv.FilePath == "" {
+		return errors.New("filePath is required")
+	}
+
+	file, err := os.Open(cv.FilePath)
+	if err != nil {
+		return err
+	}
+	defer file.Close()
+
+	// Use MIME type to check if the file is a video
+	buffer := make([]byte, 512)
+	_, err = file.Read(buffer)
+	if err != nil {
+		return err
+	}
+	mimeType := http.DetectContentType(buffer)
+
+	// Check if the file is a video
+	if !strings.HasPrefix(mimeType, "video") {
+		return errors.New("filePath must be a video file")
 	}
 
 	return nil

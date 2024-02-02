@@ -15,9 +15,9 @@ func NewVideoRepository(conn *gorm.DB) *NewsRepositoryImpl {
 }
 
 func (r *NewsRepositoryImpl) Save(video *domain.Video) error {
-	if err := r.Conn.Save(video).Error; err != nil {
-		return err
-	}
+	return r.Conn.Save(video).Error
+}
 
-	return nil
+func (r *NewsRepositoryImpl) Update(video *domain.Video) error {
+	return r.Conn.Model(video).Updates(video).Error
 }

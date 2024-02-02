@@ -6,3 +6,7 @@ docker/
 src/__debug_bin
 
 src/infrastructure/http/videos/__debug_bin
+
+.DS_Store
+
+testVideo/

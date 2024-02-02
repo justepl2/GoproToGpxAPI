@@ -18,3 +18,16 @@ func AddVideo(video *domain.Video) error {
 
 	return repo.Save(video)
 }
+
+func UpdateVideo(video *domain.Video) error {
+	conn, err := config.ConnectDB()
+	if err != nil {
+		return err
+	}
+
+	defer conn.Close()
+
+	repo := db.NewVideoRepository(conn)
+
+	return repo.Update(video)
+}

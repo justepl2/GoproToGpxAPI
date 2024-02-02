@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"net/http"
 	"net/http/httptest"
+	"os"
 	"regexp"
 	"testing"
 
@@ -23,7 +24,7 @@ func TestCreate(t *testing.T) {
 	video := &domain.Video{}
 	video.FromRequest(request.CreateVideo{
 		Name:     "videoTest",
-		Duration: 6.66,
+		FilePath: os.Getenv("TEST_VIDEO_PATH"),
 	})
 	jsonVideo, _ := json.Marshal(video)
 	req, err := http.NewRequest("POST", "/create", bytes.NewBuffer(jsonVideo))
@@ -64,7 +65,7 @@ func TestCreate_MissingFields(t *testing.T) {
 	video := &domain.Video{}
 	video.FromRequest(request.CreateVideo{
 		// Name est manquant
-		Duration: 6.66,
+		FilePath: os.Getenv("TEST_VIDEO_PATH"),
 	})
 
 	jsonVideo, _ := json.Marshal(video)
@@ -84,7 +85,7 @@ func TestCreate_EmptyName(t *testing.T) {
 	video := &domain.Video{}
 	video.FromRequest(request.CreateVideo{
 		Name:     "",
-		Duration: 6.66,
+		FilePath: os.Getenv("TEST_VIDEO_PATH"),
 	})
 
 	jsonVideo, _ := json.Marshal(video)
@@ -104,7 +105,7 @@ func TestCreate_NegativeDuration(t *testing.T) {
 	video := &domain.Video{}
 	video.FromRequest(request.CreateVideo{
 		Name:     "Negative duration",
-		Duration: -6.66,
+		FilePath: os.Getenv("TEST_VIDEO_PATH"),
 	})
 
 	jsonVideo, _ := json.Marshal(video)

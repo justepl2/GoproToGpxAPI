@@ -13,7 +13,12 @@ import (
 // Run start server
 func Run(port int) error {
 	log.Printf("Server running at http://localhost:%d/", port)
-	return http.ListenAndServe(fmt.Sprintf(":%d", port), NewRouter())
+	err := http.ListenAndServe(fmt.Sprintf(":%d", port), NewRouter())
+	if err != nil {
+		return err
+	}
+
+	return nil
 }
 
 func NewRouter() *mux.Router {
@@ -23,7 +28,7 @@ func NewRouter() *mux.Router {
 
 	// Videos endpoints
 	router.HandleFunc("/video", videos.Create).Methods("POST")
-	router.HandleFunc("/video", videos.Create).Methods("GET")
+	// router.HandleFunc("/video", videos.Create).Methods("GET")
 
 	// GPX endpoints
 	return router
