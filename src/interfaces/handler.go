@@ -6,8 +6,9 @@ import (
 	"net/http"
 
 	"github.com/gorilla/mux"
-	"github.com/justepl2/gopro_to_gpx_api/infrastructure/http/ping"
-	"github.com/justepl2/gopro_to_gpx_api/infrastructure/http/videos"
+	"github.com/justepl2/gopro_to_gpx_api/interfaces/http/gpx"
+	"github.com/justepl2/gopro_to_gpx_api/interfaces/http/ping"
+	"github.com/justepl2/gopro_to_gpx_api/interfaces/http/videos"
 )
 
 // Run start server
@@ -28,8 +29,9 @@ func NewRouter() *mux.Router {
 
 	// Videos endpoints
 	router.HandleFunc("/video", videos.Create).Methods("POST")
-	// router.HandleFunc("/video", videos.Create).Methods("GET")
+	router.HandleFunc("/video", videos.List).Methods("GET")
 
 	// GPX endpoints
+	router.HandleFunc("/gpx/{id}", gpx.GetById).Methods("GET")
 	return router
 }
