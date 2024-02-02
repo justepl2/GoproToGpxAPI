@@ -18,6 +18,18 @@ func AddGpx(gpx *domain.Gpx) error {
 	return repo.Save(gpx)
 }
 
+func ListGpx() ([]domain.Gpx, error) {
+	conn, err := config.ConnectDB()
+	if err != nil {
+		return nil, err
+	}
+	defer conn.Close()
+
+	repo := db.NewGpxRepository(conn)
+
+	return repo.FindAll()
+}
+
 func GetGpxById(id string) (*domain.Gpx, error) {
 	conn, err := config.ConnectDB()
 	if err != nil {

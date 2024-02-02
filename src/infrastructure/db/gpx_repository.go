@@ -17,6 +17,12 @@ func (r *GpxRepositoryImpl) Save(gpx *domain.Gpx) error {
 	return r.Conn.Create(&gpx).Error
 }
 
+func (r *GpxRepositoryImpl) FindAll() ([]domain.Gpx, error) {
+	var gpx []domain.Gpx
+	err := r.Conn.Find(&gpx).Error
+	return gpx, err
+}
+
 func (r *GpxRepositoryImpl) FindById(id string) (*domain.Gpx, error) {
 	var gpx domain.Gpx
 	err := r.Conn.Where("id = ?", id).First(&gpx).Error

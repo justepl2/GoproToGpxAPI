@@ -32,6 +32,8 @@ func NewRouter() *mux.Router {
 	router.HandleFunc("/video", videos.List).Methods("GET")
 
 	// GPX endpoints
+	router.HandleFunc("/gpx", gpx.List).Methods("GET")
 	router.HandleFunc("/gpx/{id}", gpx.GetById).Methods("GET")
+
 	return router
 }

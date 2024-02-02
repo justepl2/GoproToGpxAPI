@@ -10,3 +10,5 @@ src/infrastructure/http/videos/__debug_bin
 .DS_Store
 
 testVideo/
+
+src/assets/gpx_files/
