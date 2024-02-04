@@ -38,14 +38,6 @@ func Create(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// Create Video on DB
-	video.Status = domain.StatusPending
-	err = application.AddVideo(&video)
-	if err != nil {
-		tools.FormatResponseBody(w, http.StatusInternalServerError, "Cannot add video to Database, err : "+err.Error())
-		return
-	}
-
 	// Create Raw Video file
 	err = video.TransformMp4FileToBinFile()
 	if err != nil {
@@ -66,27 +58,27 @@ func Create(w http.ResponseWriter, r *http.Request) {
 	err = s3.UploadFiles(video.CameraSerialNumber+"/"+video.FileName+".bin", fileContent)
 	if err != nil {
 		// if error, update DB with status Error
-		handleError(w, &video, err, "Cannot upload file to S3")
+		tools.FormatResponseBody(w, http.StatusInternalServerError, "Cannot upload file to S3, err : "+err.Error())
 		return
 	}
 
 	// Extract GPX Data from Raw Video file
 	gpx, err := video.ExtractGpxDataFromBinFile()
 	if err != nil {
-		handleError(w, &video, err, "Cannot extract GPX data from bin file")
+		tools.FormatResponseBody(w, http.StatusInternalServerError, "Cannot extract GPX data from bin file, err : "+err.Error())
 		return
 	}
 
 	// push GPX on S3
 	gpxFileContent, err := json.Marshal(os.Getenv("GPX_FILES_DEST_DIR") + video.FileName + ".gpx")
 	if err != nil {
-		handleError(w, &video, err, "Cannot read gpx file")
+		tools.FormatResponseBody(w, http.StatusInternalServerError, "Cannot read gpx file, err : "+err.Error())
 		return
 	}
 
 	err = s3.UploadFiles(video.CameraSerialNumber+"/"+video.FileName+".gpx", gpxFileContent)
 	if err != nil {
-		handleError(w, &video, err, "Cannot upload gpx file to S3")
+		tools.FormatResponseBody(w, http.StatusInternalServerError, "Cannot upload gpx file to S3, err : "+err.Error())
 		return
 	}
 
@@ -95,29 +87,21 @@ func Create(w http.ResponseWriter, r *http.Request) {
 	gpx.Status = domain.StatusDone
 	err = application.AddGpx(&gpx)
 	if err != nil {
-		handleError(w, &video, err, "Cannot add gpx to Database")
+		tools.FormatResponseBody(w, http.StatusInternalServerError, "Cannot add gpx to Database, err : "+err.Error())
 		return
 	}
 
-	// Update Video on DB
+	// Create Video on DB
 	video.S3Location = video.CameraSerialNumber + "/" + video.FileName + ".bin"
+	// video.GpxID = gpx.ID
+	video.Gpx = gpx
 	video.Status = domain.StatusDone
-	err = application.UpdateVideo(&video)
+	err = application.AddVideo(&video)
 	if err != nil {
-		handleError(w, &video, err, "Cannot update video status")
+		tools.FormatResponseBody(w, http.StatusInternalServerError, "Cannot add video to Database, err : "+err.Error())
 		return
 	}
 
 	// Delete Raw Video file
 	tools.FormatResponseBody(w, http.StatusCreated, video.ID.String())
-}
-
-func handleError(w http.ResponseWriter, video *domain.Video, err error, message string) {
-	video.Status = domain.StatusError
-	updateErr := application.UpdateVideo(video)
-	if updateErr != nil {
-		tools.FormatResponseBody(w, http.StatusInternalServerError, "Cannot set video status to 'Error', err : "+updateErr.Error())
-		return
-	}
-	tools.FormatResponseBody(w, http.StatusInternalServerError, message+", err : "+err.Error())
 }
