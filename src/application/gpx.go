@@ -11,7 +11,6 @@ func AddGpx(gpx *domain.Gpx) error {
 	if err != nil {
 		return err
 	}
-	defer conn.Close()
 
 	repo := db.NewGpxRepository(conn)
 
@@ -23,7 +22,6 @@ func ListGpx() ([]domain.Gpx, error) {
 	if err != nil {
 		return nil, err
 	}
-	defer conn.Close()
 
 	repo := db.NewGpxRepository(conn)
 
@@ -35,7 +33,6 @@ func GetGpxById(id string) (*domain.Gpx, error) {
 	if err != nil {
 		return nil, err
 	}
-	defer conn.Close()
 
 	repo := db.NewGpxRepository(conn)
 	return repo.FindById(id)

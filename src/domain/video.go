@@ -36,6 +36,8 @@ type Video struct {
 	CameraSerialNumber string    `gorm:"column:camera_serial_number"`
 	S3Location         string    `gorm:"column:s3_location"`
 	Status             Status    `gorm:"column:status"`
+	GpxID              uuid.UUID
+	Gpx                Gpx `gorm:"constraint:OnUpdate:CASCADE,OnDelete:CASCADE;"`
 	CreatedAt          time.Time
 	UpdatedAt          time.Time
 	DeletedAt          gorm.DeletedAt `gorm:"index"`

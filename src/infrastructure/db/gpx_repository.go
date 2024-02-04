@@ -1,8 +1,8 @@
 package db
 
 import (
-	"github.com/jinzhu/gorm"
 	"github.com/justepl2/gopro_to_gpx_api/domain"
+	"gorm.io/gorm"
 )
 
 type GpxRepositoryImpl struct {

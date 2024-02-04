@@ -15,7 +15,7 @@ func List(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	videosResponse := make([]response.ListVideo, len(videos))
+	videosResponse := make([]response.Video, len(videos))
 	for i, video := range videos {
 		videosResponse[i].FromDomain(video)
 	}

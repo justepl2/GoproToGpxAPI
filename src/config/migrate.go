@@ -7,16 +7,15 @@ import (
 )
 
 func DBMigrate() error {
-	conn, err := ConnectDB()
+	db, err := ConnectDB()
 	if err != nil {
 		return err
 	}
-	defer conn.Close()
 
-	conn.AutoMigrate(&domain.Video{}, &domain.Gpx{})
-	if conn.Error != nil {
+	db.AutoMigrate(&domain.Video{}, &domain.Gpx{})
+	if db.Error != nil {
 		log.Println("Error migrating database")
-		return conn.Error
+		return db.Error
 	}
 
 	log.Println("Migration has been processed")

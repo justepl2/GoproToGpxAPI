@@ -11,7 +11,6 @@ func AddVideo(video *domain.Video) error {
 	if err != nil {
 		return err
 	}
-	defer conn.Close()
 
 	repo := db.NewVideoRepository(conn)
 
@@ -23,7 +22,6 @@ func UpdateVideo(video *domain.Video) error {
 	if err != nil {
 		return err
 	}
-	defer conn.Close()
 
 	repo := db.NewVideoRepository(conn)
 
@@ -35,7 +33,6 @@ func ListVideos() ([]domain.Video, error) {
 	if err != nil {
 		return nil, err
 	}
-	defer conn.Close()
 
 	repo := db.NewVideoRepository(conn)
 

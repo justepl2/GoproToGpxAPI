@@ -1,28 +1,29 @@
 package db
 
 import (
-	"github.com/jinzhu/gorm"
+	"gorm.io/gorm"
+
 	"github.com/justepl2/gopro_to_gpx_api/domain"
 )
 
 type VideoRepositoryImpl struct {
-	Conn *gorm.DB
+	db *gorm.DB
 }
 
-func NewVideoRepository(conn *gorm.DB) *VideoRepositoryImpl {
-	return &VideoRepositoryImpl{Conn: conn}
+func NewVideoRepository(db *gorm.DB) *VideoRepositoryImpl {
+	return &VideoRepositoryImpl{db: db}
 }
 
 func (r *VideoRepositoryImpl) Save(video *domain.Video) error {
-	return r.Conn.Save(video).Error
+	return r.db.Save(video).Error
 }
 
 func (r *VideoRepositoryImpl) Update(video *domain.Video) error {
-	return r.Conn.Model(video).Updates(video).Error
+	return r.db.Model(video).Updates(video).Error
 }
 
 func (r *VideoRepositoryImpl) FindAll() ([]domain.Video, error) {
 	var videos []domain.Video
-	err := r.Conn.Find(&videos).Error
+	err := r.db.Joins("Gpx").Find(&videos).Error
 	return videos, err
 }
