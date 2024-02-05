@@ -28,6 +28,17 @@ func UpdateVideo(video *domain.Video) error {
 	return repo.Update(video)
 }
 
+func GetVideosByIds(ids []string) ([]domain.Video, error) {
+	conn, err := config.ConnectDB()
+	if err != nil {
+		return nil, err
+	}
+
+	repo := db.NewVideoRepository(conn)
+
+	return repo.FindByIds(ids)
+}
+
 func ListVideos() ([]domain.Video, error) {
 	conn, err := config.ConnectDB()
 	if err != nil {

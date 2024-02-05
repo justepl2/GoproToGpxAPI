@@ -2,6 +2,7 @@ package videos
 
 import (
 	"encoding/json"
+	"fmt"
 	"net/http"
 	"os"
 
@@ -16,6 +17,7 @@ func Create(w http.ResponseWriter, r *http.Request) {
 	var requestVideo request.CreateVideo
 	var video domain.Video
 
+	fmt.Println("endpoint POST /videos called")
 	decoder := json.NewDecoder(r.Body)
 	err := decoder.Decode(&requestVideo)
 	if err != nil {
@@ -44,7 +46,6 @@ func Create(w http.ResponseWriter, r *http.Request) {
 		tools.FormatResponseBody(w, http.StatusInternalServerError, "Cannot transform video to bin file, err : "+err.Error())
 		return
 	}
-	defer tools.DeleteTempFiles(video.FileName)
 
 	// Push on S3
 	s3 := infrastructure.NewS3FileStorage()
@@ -70,7 +71,7 @@ func Create(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// push GPX on S3
-	gpxFileContent, err := json.Marshal(os.Getenv("GPX_FILES_DEST_DIR") + video.FileName + ".gpx")
+	gpxFileContent, err := os.ReadFile(os.Getenv("GPX_FILES_DEST_DIR") + video.FileName + ".gpx")
 	if err != nil {
 		tools.FormatResponseBody(w, http.StatusInternalServerError, "Cannot read gpx file, err : "+err.Error())
 		return
@@ -93,7 +94,6 @@ func Create(w http.ResponseWriter, r *http.Request) {
 
 	// Create Video on DB
 	video.S3Location = video.CameraSerialNumber + "/" + video.FileName + ".bin"
-	// video.GpxID = gpx.ID
 	video.Gpx = gpx
 	video.Status = domain.StatusDone
 	err = application.AddVideo(&video)
@@ -103,5 +103,6 @@ func Create(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Delete Raw Video file
+	tools.DeleteTempFiles(video.FileName)
 	tools.FormatResponseBody(w, http.StatusCreated, video.ID.String())
 }

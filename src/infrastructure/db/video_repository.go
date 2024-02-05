@@ -22,6 +22,12 @@ func (r *VideoRepositoryImpl) Update(video *domain.Video) error {
 	return r.db.Model(video).Updates(video).Error
 }
 
+func (r *VideoRepositoryImpl) FindByIds(ids []string) ([]domain.Video, error) {
+	var videos []domain.Video
+	err := r.db.Joins("Gpx").Where("Videos.id IN (?)", ids).Find(&videos).Error
+	return videos, err
+}
+
 func (r *VideoRepositoryImpl) FindAll() ([]domain.Video, error) {
 	var videos []domain.Video
 	err := r.db.Joins("Gpx").Find(&videos).Error

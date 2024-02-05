@@ -2,6 +2,7 @@ package gpx
 
 import (
 	"encoding/json"
+	"fmt"
 	"net/http"
 
 	"github.com/justepl2/gopro_to_gpx_api/application"
@@ -10,6 +11,8 @@ import (
 )
 
 func List(w http.ResponseWriter, r *http.Request) {
+	fmt.Println("endpoint GET /gpx called")
+
 	gpxs, err := application.ListGpx()
 	if err != nil {
 		tools.FormatResponseBody(w, http.StatusInternalServerError, err.Error())

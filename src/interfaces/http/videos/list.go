@@ -2,6 +2,7 @@ package videos
 
 import (
 	"encoding/json"
+	"fmt"
 	"net/http"
 
 	"github.com/justepl2/gopro_to_gpx_api/application"
@@ -9,6 +10,8 @@ import (
 )
 
 func List(w http.ResponseWriter, r *http.Request) {
+	fmt.Println("endpoint GET /videos called")
+
 	videos, err := application.ListVideos()
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)

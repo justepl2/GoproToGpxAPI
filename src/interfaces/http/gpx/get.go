@@ -2,6 +2,7 @@ package gpx
 
 import (
 	"encoding/json"
+	"fmt"
 	"net/http"
 
 	"github.com/gorilla/mux"
@@ -10,6 +11,8 @@ import (
 )
 
 func GetById(w http.ResponseWriter, r *http.Request) {
+	fmt.Println("endpoint GET /gpx/{id} called")
+
 	vars := mux.Vars(r)
 	gpx, err := application.GetGpxById(vars["id"])
 	if err != nil {
