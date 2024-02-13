@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"encoding/xml"
 	"fmt"
+	"io/ioutil"
 	"os"
 	"os/exec"
 	"strconv"
@@ -46,6 +47,11 @@ type Video struct {
 func (dv *Video) FromRequest(rv request.CreateVideo) {
 	dv.Name = rv.Name
 	dv.FilePath = rv.FilePath
+}
+
+func (dv *Video) FromRawRequest(rf request.RawFile) {
+	dv.Name = rf.Name
+	dv.FilePath = os.Getenv("RAW_VIDEO_DEST_DIR") + rf.Name + ".bin"
 }
 
 // get Data from FilePath
@@ -104,6 +110,70 @@ func (dv *Video) FillVideoMetadata() error {
 	}
 
 	return nil
+}
+
+func (dv *Video) FillRawMetadata(file []byte) []byte {
+	err := ioutil.WriteFile(dv.Name, file, 0644)
+	if err != nil {
+		return nil
+	}
+
+	// Use Exiftool CLI to get metadata, try to get Camera Model, Duration and FileName and FileType + MediaUniqueID + CameraSerialNumber
+	cmd := exec.Command("exiftool", "-j", "-Model", "-Duration", "-FileName", "-FileTypeExtension", "-MediaUniqueID", "-CameraSerialNumber", dv.Name)
+	output, _ := cmd.Output()
+	return output
+	// fmt.Println(output)
+	// if err != nil {
+	// 	return err
+	// }
+
+	// // parse output
+	// var data []map[string]interface{}
+	// if err := json.Unmarshal(output, &data); err != nil {
+	// 	return err
+	// }
+
+	// // Video Information
+	// if fileName, ok := data[0]["FileName"].(string); ok {
+	// 	dv.FileName = strings.Trim(fileName, ".MP4")
+	// }
+
+	// if fileType, ok := data[0]["FileTypeExtension"].(string); ok {
+	// 	dv.FileType = fileType
+	// }
+
+	// if duration, ok := data[0]["Duration"].(string); ok {
+	// 	var durationFloat float64
+	// 	if strings.Contains(duration, "s") {
+	// 		duration = strings.Trim(duration, " s")
+	// 		durationFloat, err = strconv.ParseFloat(duration, 32)
+	// 		if err != nil {
+	// 			return err
+	// 		}
+	// 	} else {
+	// 		durationFloat, err = convertDurationToSeconds(duration)
+	// 		if err != nil {
+	// 			return err
+	// 		}
+	// 	}
+
+	// 	dv.Duration = tools.TruncateFloat(durationFloat)
+	// }
+
+	// if mediaUniqueID, ok := data[0]["MediaUniqueID"].(string); ok {
+	// 	dv.MediaUniqueID = mediaUniqueID
+	// }
+
+	// // In future, need to save Camera in independant table
+	// if cameraSerialNumber, ok := data[0]["CameraSerialNumber"].(string); ok {
+	// 	dv.CameraSerialNumber = cameraSerialNumber
+	// }
+
+	// if model, ok := data[0]["Model"].(string); ok {
+	// 	dv.CameraModel = model
+	// }
+
+	// return nil
 }
 
 func (dv *Video) ExtractGpxDataFromBinFile() (Gpx, error) {

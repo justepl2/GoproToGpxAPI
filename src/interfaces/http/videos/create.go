@@ -3,6 +3,7 @@ package videos
 import (
 	"encoding/json"
 	"fmt"
+	"io"
 	"net/http"
 	"os"
 
@@ -105,4 +106,42 @@ func Create(w http.ResponseWriter, r *http.Request) {
 	// Delete Raw Video file
 	tools.DeleteTempFiles(video.FileName)
 	tools.FormatResponseBody(w, http.StatusCreated, video.ID.String())
+}
+
+func CreateFromRaw(w http.ResponseWriter, r *http.Request) {
+	var video domain.Video
+
+	// Parse the multipart form in the request
+	err := r.ParseMultipartForm(10 << 20) // Max memory 10MB
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	// Retrieve the file from form data
+	file, fileHeader, err := r.FormFile("file") // "file" is the key of the form-data to be uploaded
+	if err != nil {
+		tools.FormatResponseBody(w, http.StatusBadRequest, "Cannot retrieve file from form-data, err : "+err.Error())
+		return
+	}
+	defer file.Close()
+
+	// Read the file into a byte slice (byte[])
+	fileBytes, err := io.ReadAll(file)
+	if err != nil {
+		tools.FormatResponseBody(w, http.StatusInternalServerError, "Cannot read file, err : "+err.Error())
+		return
+	}
+
+	// Create a RawFile
+	rawFile := request.RawFile{
+		Name: fileHeader.Filename,
+		File: fileBytes,
+	}
+
+	rawFile.Validate()
+
+	video.FromRawRequest(rawFile)
+	output := video.FillRawMetadata(fileBytes)
+	tools.FormatResponseBody(w, http.StatusCreated, "File received : "+string(output))
 }
