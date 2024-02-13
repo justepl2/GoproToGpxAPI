@@ -1,0 +1,56 @@
+version: '3'
+services:
+  db:
+    image: postgres:latest
+    environment:
+      POSTGRES_USER: root
+      POSTGRES_PASSWORD: root
+      POSTGRES_DB: gopro_to_gpx
+    ports:
+      - "5432:5432"
+    volumes:
+      - ./docker/db_data:/var/lib/postgresql/data
+
+  adminer:
+    image: adminer
+    restart: always
+    ports:
+      - 8082:8080
+    links:
+      - db
+
+  # web:
+  #   build: .
+  #   command: go run main.go
+  #   volumes:
+  #     - ./src:/app
+  #   ports:
+  #     - "8081:8080"
+  #   depends_on:
+  #     - db
+
+  localstack:
+    image: localstack/localstack:latest
+    container_name: localstack_demo
+    ports:
+      - '4563-4599:4563-4599'
+      - '8055:8080'
+    environment:
+      - SERVICES=s3
+      - DEBUG=1
+      - DATA_DIR=/tmp/localstack/data
+      - AWS_ACCESS_KEY_ID=test
+      - AWS_SECRET_ACCESS_KEY=test
+    volumes:
+      - './docker/.localstack:/var/lib/localstack'
+      - '/var/run/docker.sock:/var/run/docker.sock'
+    command: >
+      bash -c "
+        echo 'Waiting for LocalStack to be ready...' &&
+        while ! nc -z host.docker.internal 4566; do sleep 1; done &&
+        echo 'LocalStack is ready.' &&
+        aws --endpoint-url=http://host.docker.internal:4566 s3api create-bucket --bucket gopro-to-gpx-api --create-bucket-configuration LocationConstraint=eu-west-3
+      "
+
+volumes:
+  db_data:

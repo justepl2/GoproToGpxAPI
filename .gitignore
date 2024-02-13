@@ -1,0 +1,16 @@
+# ignore .env.local
+.env.local
+.env.test
+src/.env.test
+docker/
+.vscode/
+
+src/__debug_bin
+
+src/infrastructure/http/videos/__debug_bin
+
+.DS_Store
+
+testVideo/
+
+src/assets/gpx_files/
