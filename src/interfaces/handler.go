@@ -39,7 +39,11 @@ func NewRouter() *mux.Router {
 	router.HandleFunc("/gpx/{id}", gpx.GetById).Methods("GET")
 
 	// Apply the CORS middleware to our top-level router, with the defaults.
-	router.Use(handlers.CORS(handlers.AllowedOrigins([]string{"*"})))
+	router.Use(handlers.CORS(
+		handlers.AllowedOrigins([]string{"*"}),
+		handlers.AllowedHeaders([]string{"Content-Type"}),
+		handlers.AllowedMethods([]string{"GET", "POST", "PUT", "DELETE"}),
+	))
 
 	return router
 }
