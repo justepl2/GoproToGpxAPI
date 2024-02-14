@@ -1,5 +1,7 @@
 FROM golang:latest
 WORKDIR /app
+RUN apt-get update
+RUN apt-get install -y libimage-exiftool-perl
 COPY ./src/go.mod ./src/go.sum ./
 RUN go mod download
 COPY ./src ./
