@@ -112,16 +112,17 @@ func (dv *Video) FillVideoMetadata() error {
 	return nil
 }
 
-func (dv *Video) FillRawMetadata(file []byte) []byte {
+func (dv *Video) FillRawMetadata(file []byte) ([]byte, error) {
 	err := ioutil.WriteFile(dv.Name, file, 0644)
 	if err != nil {
-		return nil
+		return nil, err
 	}
 
 	// Use Exiftool CLI to get metadata, try to get Camera Model, Duration and FileName and FileType + MediaUniqueID + CameraSerialNumber
 	cmd := exec.Command("exiftool", "-j", "-Model", "-Duration", "-FileName", "-FileTypeExtension", "-MediaUniqueID", "-CameraSerialNumber", dv.Name)
-	output, _ := cmd.Output()
-	return output
+	output, err := cmd.Output()
+
+	return output, err
 	// fmt.Println(output)
 	// if err != nil {
 	// 	return err

@@ -142,6 +142,10 @@ func CreateFromRaw(w http.ResponseWriter, r *http.Request) {
 	rawFile.Validate()
 
 	video.FromRawRequest(rawFile)
-	output := video.FillRawMetadata(fileBytes)
+	output, err := video.FillRawMetadata(fileBytes)
+	if err != nil {
+		tools.FormatResponseBody(w, http.StatusInternalServerError, "Cannot get video metadata, err : "+err.Error())
+		return
+	}
 	tools.FormatResponseBody(w, http.StatusCreated, "File received : "+string(output))
 }
