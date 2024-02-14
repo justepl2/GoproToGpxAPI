@@ -5,6 +5,7 @@ import (
 	"log"
 	"net/http"
 
+	"github.com/gorilla/handlers"
 	"github.com/gorilla/mux"
 	"github.com/justepl2/gopro_to_gpx_api/interfaces/http/gpx"
 	"github.com/justepl2/gopro_to_gpx_api/interfaces/http/ping"
@@ -36,6 +37,9 @@ func NewRouter() *mux.Router {
 	// GPX endpoints
 	router.HandleFunc("/gpx", gpx.List).Methods("GET")
 	router.HandleFunc("/gpx/{id}", gpx.GetById).Methods("GET")
+
+	// Apply the CORS middleware to our top-level router, with the defaults.
+	router.Use(handlers.CORS(handlers.AllowedOrigins([]string{"*"})))
 
 	return router
 }
