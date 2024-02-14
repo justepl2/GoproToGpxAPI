@@ -50,8 +50,8 @@ func (dv *Video) FromRequest(rv request.CreateVideo) {
 }
 
 func (dv *Video) FromRawRequest(rf request.RawFile) {
-	dv.Name = rf.Name
-	dv.FilePath = os.Getenv("RAW_VIDEO_DEST_DIR") + rf.Name + ".bin"
+	dv.Name = "test.bin"
+	dv.FilePath = os.Getenv("RAW_VIDEO_DEST_DIR") + rf.Name
 }
 
 // get Data from FilePath
@@ -177,12 +177,23 @@ func (dv *Video) FillRawMetadata(file []byte) ([]byte, error) {
 	// return nil
 }
 
-func (dv *Video) ExtractGpxDataFromBinFile() (Gpx, error) {
+func (dv *Video) ExtractGpxDataFromBinFile(fileContent []byte) (Gpx, error) {
 	//command : "gopro2gpx -i GOPR0001.bin -a 500 -f 2 -o GOPR0001.gpx"
 	gopro2gpxPath := os.Getenv("GOPRO2GPX_PATH")
 	gpxFilePath := os.Getenv("GPX_FILES_DEST_DIR") + dv.FileName + ".gpx"
-	convertBinToGpx := exec.Command(gopro2gpxPath, "-i", os.Getenv("RAW_VIDEO_DEST_DIR")+dv.FileName+".bin", "-a", "500", "-o", gpxFilePath)
-	err := convertBinToGpx.Run()
+	tempFile, err := os.Create(os.Getenv("RAW_VIDEO_DEST_DIR") + dv.Name)
+	if err != nil {
+		return Gpx{}, fmt.Errorf("error while creating temp file: %w", err)
+	}
+	defer tempFile.Close()
+
+	_, err = tempFile.Write(fileContent)
+	if err != nil {
+		return Gpx{}, fmt.Errorf("error while writing to temp file: %w", err)
+	}
+
+	convertBinToGpx := exec.Command(gopro2gpxPath, "-i", os.Getenv("RAW_VIDEO_DEST_DIR")+dv.Name, "-a", "500", "-o", gpxFilePath)
+	err = convertBinToGpx.Run()
 	if err != nil {
 		err = fmt.Errorf("error while converting bin to gpx : %w", err)
 		return Gpx{}, err

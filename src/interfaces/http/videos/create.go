@@ -65,47 +65,47 @@ func Create(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Extract GPX Data from Raw Video file
-	gpx, err := video.ExtractGpxDataFromBinFile()
-	if err != nil {
-		tools.FormatResponseBody(w, http.StatusInternalServerError, "Cannot extract GPX data from bin file, err : "+err.Error())
-		return
-	}
+	// gpx, err := video.ExtractGpxDataFromBinFile()
+	// if err != nil {
+	// tools.FormatResponseBody(w, http.StatusInternalServerError, "Cannot extract GPX data from bin file, err : "+err.Error())
+	// return
+	// }
 
 	// push GPX on S3
-	gpxFileContent, err := os.ReadFile(os.Getenv("GPX_FILES_DEST_DIR") + video.FileName + ".gpx")
-	if err != nil {
-		tools.FormatResponseBody(w, http.StatusInternalServerError, "Cannot read gpx file, err : "+err.Error())
-		return
-	}
+	// gpxFileContent, err := os.ReadFile(os.Getenv("GPX_FILES_DEST_DIR") + video.FileName + ".gpx")
+	// if err != nil {
+	// 	tools.FormatResponseBody(w, http.StatusInternalServerError, "Cannot read gpx file, err : "+err.Error())
+	// 	return
+	// }
 
-	err = s3.UploadFiles(video.CameraSerialNumber+"/"+video.FileName+".gpx", gpxFileContent)
-	if err != nil {
-		tools.FormatResponseBody(w, http.StatusInternalServerError, "Cannot upload gpx file to S3, err : "+err.Error())
-		return
-	}
+	// err = s3.UploadFiles(video.CameraSerialNumber+"/"+video.FileName+".gpx", gpxFileContent)
+	// if err != nil {
+	// 	tools.FormatResponseBody(w, http.StatusInternalServerError, "Cannot upload gpx file to S3, err : "+err.Error())
+	// 	return
+	// }
 
-	// Create GPX on DB
-	gpx.S3Location = video.CameraSerialNumber + "/" + video.FileName + ".gpx"
-	gpx.Status = domain.StatusDone
-	err = application.AddGpx(&gpx)
-	if err != nil {
-		tools.FormatResponseBody(w, http.StatusInternalServerError, "Cannot add gpx to Database, err : "+err.Error())
-		return
-	}
+	// // Create GPX on DB
+	// gpx.S3Location = video.CameraSerialNumber + "/" + video.FileName + ".gpx"
+	// gpx.Status = domain.StatusDone
+	// err = application.AddGpx(&gpx)
+	// if err != nil {
+	// 	tools.FormatResponseBody(w, http.StatusInternalServerError, "Cannot add gpx to Database, err : "+err.Error())
+	// 	return
+	// }
 
-	// Create Video on DB
-	video.S3Location = video.CameraSerialNumber + "/" + video.FileName + ".bin"
-	video.Gpx = gpx
-	video.Status = domain.StatusDone
-	err = application.AddVideo(&video)
-	if err != nil {
-		tools.FormatResponseBody(w, http.StatusInternalServerError, "Cannot add video to Database, err : "+err.Error())
-		return
-	}
+	// // Create Video on DB
+	// video.S3Location = video.CameraSerialNumber + "/" + video.FileName + ".bin"
+	// video.Gpx = gpx
+	// video.Status = domain.StatusDone
+	// err = application.AddVideo(&video)
+	// if err != nil {
+	// 	tools.FormatResponseBody(w, http.StatusInternalServerError, "Cannot add video to Database, err : "+err.Error())
+	// 	return
+	// }
 
-	// Delete Raw Video file
-	tools.DeleteTempFiles(video.FileName)
-	tools.FormatResponseBody(w, http.StatusCreated, video.ID.String())
+	// // Delete Raw Video file
+	// tools.DeleteTempFiles(video.FileName)
+	// tools.FormatResponseBody(w, http.StatusCreated, video.ID.String())
 }
 
 func CreateFromRaw(w http.ResponseWriter, r *http.Request) {
@@ -142,13 +142,13 @@ func CreateFromRaw(w http.ResponseWriter, r *http.Request) {
 	rawFile.Validate()
 
 	video.FromRawRequest(rawFile)
-	output, err := video.FillRawMetadata(fileBytes)
-	if err != nil {
-		tools.FormatResponseBody(w, http.StatusInternalServerError, "Cannot get video metadata, err : "+err.Error())
-		return
-	}
+	// output, err := video.FillRawMetadata(fileBytes)
+	//if err != nil {
+	//	tools.FormatResponseBody(w, http.StatusInternalServerError, "Cannot get video metadata, err : "+err.Error())
+	//	return
+	//}
 
-	gpx, err := video.ExtractGpxDataFromBinFile()
+	gpx, err := video.ExtractGpxDataFromBinFile(rawFile.File)
 	if err != nil {
 		tools.FormatResponseBody(w, http.StatusInternalServerError, "Cannot extract GPX data from bin file, err : "+err.Error())
 		return
@@ -159,7 +159,7 @@ func CreateFromRaw(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	gpxFileContent, err := os.ReadFile(os.Getenv("GPX_FILES_DEST_DIR") + video.FileName + ".gpx")
+	gpxFileContent, err := os.ReadFile(os.Getenv("GPX_FILES_DEST_DIR") + video.Name + ".gpx")
 	if err != nil {
 		tools.FormatResponseBody(w, http.StatusInternalServerError, "Cannot read gpx file, err : "+err.Error())
 		return
@@ -191,5 +191,5 @@ func CreateFromRaw(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	tools.FormatResponseBody(w, http.StatusCreated, "File received : "+string(output))
+	tools.FormatResponseBody(w, http.StatusCreated, "File received")
 }
