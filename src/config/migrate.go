@@ -12,7 +12,7 @@ func DBMigrate() error {
 		return err
 	}
 
-	db.AutoMigrate(&domain.Video{}, &domain.Gpx{})
+	db.AutoMigrate(&domain.Video{}, &domain.Gpx{}, &domain.User{})
 	if db.Error != nil {
 		log.Println("Error migrating database")
 		return db.Error

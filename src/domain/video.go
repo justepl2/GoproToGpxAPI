@@ -39,9 +39,9 @@ type Video struct {
 	S3Location         string    `gorm:"column:s3_location"`
 	Status             Status    `gorm:"column:status"`
 	GpxID              uuid.UUID
-	Gpx                Gpx `gorm:"constraint:OnUpdate:CASCADE,OnDelete:CASCADE;"`
-	CreatedAt          time.Time
-	UpdatedAt          time.Time
+	Gpx                Gpx            `gorm:"constraint:OnUpdate:CASCADE,OnDelete:CASCADE;"`
+	CreatedAt          time.Time      `gorm:"column:created_at"`
+	UpdatedAt          time.Time      `gorm:"column:updated_at"`
 	DeletedAt          gorm.DeletedAt `gorm:"index"`
 }
 

@@ -93,7 +93,7 @@ func Create(w http.ResponseWriter, r *http.Request) {
 	// 	return
 	// }
 
-	// // Create Video on DB
+	// Create Video on DB
 	// video.S3Location = video.CameraSerialNumber + "/" + video.FileName + ".bin"
 	// video.Gpx = gpx
 	// video.Status = domain.StatusDone
