@@ -2,7 +2,9 @@
 .env.local
 .env.test
 src/.env.test
-docker/
+docker/.localstack
+docker/db_data
+docker/tmp
 .vscode/
 
 src/__debug_bin
