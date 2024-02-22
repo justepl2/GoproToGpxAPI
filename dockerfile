@@ -2,7 +2,9 @@ FROM golang:latest
 WORKDIR /app
 
 RUN apt-get update && apt-get install -y libimage-exiftool-perl
+COPY ./src/docker/gopro-utils /app/gopro-utils
 
+WORKDIR /app
 COPY ./src/go.mod ./src/go.sum ./
 RUN go mod download
 COPY ./src ./

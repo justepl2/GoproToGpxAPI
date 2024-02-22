@@ -7,6 +7,7 @@ import (
 	"io/ioutil"
 	"os"
 	"os/exec"
+	"path/filepath"
 	"strconv"
 	"strings"
 	"time"
@@ -50,8 +51,10 @@ func (dv *Video) FromRequest(rv request.CreateVideo) {
 }
 
 func (dv *Video) FromRawRequest(rf request.RawFile) {
-	dv.Name = "test.bin"
+	dv.Name = strings.TrimSuffix(rf.Name, filepath.Ext(rf.Name))
+	dv.FileName = rf.Name
 	dv.FilePath = os.Getenv("RAW_VIDEO_DEST_DIR") + rf.Name
+	dv.FileType = "bin"
 }
 
 // get Data from FilePath
@@ -71,7 +74,7 @@ func (dv *Video) FillVideoMetadata() error {
 
 	// Video Information
 	if fileName, ok := data[0]["FileName"].(string); ok {
-		dv.FileName = strings.Trim(fileName, ".MP4")
+		dv.FileName = strings.Trim(fileName, ".bin")
 	}
 
 	if fileType, ok := data[0]["FileTypeExtension"].(string); ok {
@@ -180,8 +183,8 @@ func (dv *Video) FillRawMetadata(file []byte) ([]byte, error) {
 func (dv *Video) ExtractGpxDataFromBinFile(fileContent []byte) (Gpx, error) {
 	//command : "gopro2gpx -i GOPR0001.bin -a 500 -f 2 -o GOPR0001.gpx"
 	gopro2gpxPath := os.Getenv("GOPRO2GPX_PATH")
-	gpxFilePath := os.Getenv("GPX_FILES_DEST_DIR") + dv.FileName + ".gpx"
-	tempFile, err := os.Create(os.Getenv("RAW_VIDEO_DEST_DIR") + dv.Name)
+	gpxFilePath := os.Getenv("GPX_FILES_DEST_DIR") + dv.Name + ".gpx"
+	tempFile, err := os.Create(os.Getenv("RAW_VIDEO_DEST_DIR") + dv.FileName)
 	if err != nil {
 		return Gpx{}, fmt.Errorf("error while creating temp file: %w", err)
 	}
@@ -192,7 +195,7 @@ func (dv *Video) ExtractGpxDataFromBinFile(fileContent []byte) (Gpx, error) {
 		return Gpx{}, fmt.Errorf("error while writing to temp file: %w", err)
 	}
 
-	convertBinToGpx := exec.Command(gopro2gpxPath, "-i", os.Getenv("RAW_VIDEO_DEST_DIR")+dv.Name, "-a", "500", "-o", gpxFilePath)
+	convertBinToGpx := exec.Command(gopro2gpxPath, "-i", os.Getenv("RAW_VIDEO_DEST_DIR")+dv.FileName, "-a", "500", "-o", gpxFilePath)
 	err = convertBinToGpx.Run()
 	if err != nil {
 		err = fmt.Errorf("error while converting bin to gpx : %w", err)
@@ -200,7 +203,7 @@ func (dv *Video) ExtractGpxDataFromBinFile(fileContent []byte) (Gpx, error) {
 	}
 
 	var gpx Gpx
-	gpx.Name = dv.FileName + ".gpx"
+	gpx.Name = dv.Name + ".gpx"
 	gpx.Type = TypeFromGopro
 
 	// Read GPX file

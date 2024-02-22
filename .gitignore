@@ -18,3 +18,5 @@ src/assets/gpx_files/
 src/GX017107.bin
 
 *.bin
+
+src/test

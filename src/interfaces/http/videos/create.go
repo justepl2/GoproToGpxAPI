@@ -166,7 +166,7 @@ func CreateFromRaw(w http.ResponseWriter, r *http.Request) {
 	}
 
 	s3 := infrastructure.NewS3FileStorage()
-	err = s3.UploadFiles(video.CameraSerialNumber+"/"+video.FileName+".gpx", gpxFileContent)
+	err = s3.UploadFiles(video.CameraSerialNumber+"/"+video.Name+".gpx", gpxFileContent)
 	if err != nil {
 		tools.FormatResponseBody(w, http.StatusInternalServerError, "Cannot upload gpx file to S3, err : "+err.Error())
 		return
@@ -191,5 +191,11 @@ func CreateFromRaw(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	tools.FormatResponseBody(w, http.StatusCreated, "File received")
+	// Delete Raw Video file
+	err = tools.DeleteTempFiles(video.Name)
+	if err != nil {
+		tools.FormatResponseBody(w, http.StatusInternalServerError, "Cannot delete temp files, err : "+err.Error())
+	}
+
+	tools.FormatResponseBody(w, http.StatusCreated, video.ID.String())
 }
