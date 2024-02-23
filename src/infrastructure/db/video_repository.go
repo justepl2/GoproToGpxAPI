@@ -28,6 +28,12 @@ func (r *VideoRepositoryImpl) FindByIds(ids []string) ([]domain.Video, error) {
 	return videos, err
 }
 
+func (r *VideoRepositoryImpl) FindByUserId(userId string) ([]domain.Video, error) {
+	var videos []domain.Video
+	err := r.db.Joins("Gpx").Where("user_id = ?", userId).Find(&videos).Error
+	return videos, err
+}
+
 func (r *VideoRepositoryImpl) FindAll() ([]domain.Video, error) {
 	var videos []domain.Video
 	err := r.db.Joins("Gpx").Find(&videos).Error

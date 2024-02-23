@@ -1,6 +1,7 @@
 package middleware
 
 import (
+	"context"
 	"fmt"
 	"net/http"
 	"os"
@@ -13,14 +14,13 @@ import (
 
 func UserAuthenticationMiddleware(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		// Récupérer le token de l'en-tête Authorization
+		// get Auth token authorization header
 		authHeader := r.Header.Get("Authorization")
 		if authHeader == "" {
 			http.Error(w, "Authorization header missing", http.StatusUnauthorized)
 			return
 		}
 
-		// Le token doit être préfixé par "Bearer "
 		parts := strings.Split(authHeader, " ")
 		if len(parts) != 2 || parts[0] != "Bearer" {
 			tools.FormatResponseBody(w, http.StatusUnauthorized, "Invalid Authorization header")
@@ -28,7 +28,7 @@ func UserAuthenticationMiddleware(next http.Handler) http.Handler {
 			return
 		}
 
-		// Vérifier le token
+		// check token
 		segments := strings.Split(parts[1], ".")
 		if len(segments) != 3 {
 			tools.FormatResponseBody(w, http.StatusUnauthorized, "Invalid token")
@@ -58,14 +58,20 @@ func UserAuthenticationMiddleware(next http.Handler) http.Handler {
 			return
 		}
 
-		// Vérifier le rôle
+		// check role
 		if role != string(domain.RoleUser) && role != string(domain.RoleAdmin) {
 			tools.FormatResponseBody(w, http.StatusForbidden, "Forbidden")
 			return
 		}
 
-		// L'utilisateur est authentifié, passer à la prochaine requête
-		next.ServeHTTP(w, r)
+		userId, ok := claims["userID"].(string)
+		if !ok {
+			tools.FormatResponseBody(w, http.StatusUnauthorized, "Invalid user ID claim")
+			return
+		}
+
+		ctx := context.WithValue(r.Context(), "userId", userId)
+		next.ServeHTTP(w, r.WithContext(ctx))
 	})
 }
 

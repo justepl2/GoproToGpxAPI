@@ -39,6 +39,7 @@ type Video struct {
 	S3Location         string    `gorm:"column:s3_location"`
 	Status             Status    `gorm:"column:status"`
 	GpxID              uuid.UUID
+	UserId             uuid.UUID      `gorm:"column:user_id"`
 	Gpx                Gpx            `gorm:"constraint:OnUpdate:CASCADE,OnDelete:CASCADE;"`
 	CreatedAt          time.Time      `gorm:"column:created_at"`
 	UpdatedAt          time.Time      `gorm:"column:updated_at"`
@@ -55,6 +56,7 @@ func (dv *Video) FromRawRequest(rf request.RawFile) {
 	dv.FileName = rf.Name
 	dv.FilePath = os.Getenv("RAW_VIDEO_DEST_DIR") + rf.Name
 	dv.FileType = "bin"
+	dv.UserId = rf.UserId
 }
 
 // get Data from FilePath

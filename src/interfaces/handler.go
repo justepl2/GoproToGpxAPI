@@ -39,10 +39,9 @@ func NewRouter() *mux.Router {
 	router.HandleFunc("/users/forgot-password", users.ForgotPassword).Methods("POST")
 
 	// Videos endpoints
-	router.Handle("/video", middleware.UserAuthenticationMiddleware(http.HandlerFunc(videos.Create))).Methods("POST")
-	router.Handle("/video", middleware.UserAuthenticationMiddleware(http.HandlerFunc(videos.List))).Methods("GET")
-	router.Handle("/video/link", middleware.UserAuthenticationMiddleware(http.HandlerFunc(videos.Link))).Methods("POST")
-	router.Handle("/video/raw", middleware.UserAuthenticationMiddleware(http.HandlerFunc(videos.CreateFromRaw))).Methods("POST")
+	router.Handle("/videos", middleware.UserAuthenticationMiddleware(http.HandlerFunc(videos.List))).Methods("GET")
+	router.Handle("/videos/link", middleware.UserAuthenticationMiddleware(http.HandlerFunc(videos.Link))).Methods("POST")
+	router.Handle("/videos/raw", middleware.UserAuthenticationMiddleware(http.HandlerFunc(videos.CreateFromRaw))).Methods("POST")
 
 	// GPX endpoints
 	router.Handle("/gpx", middleware.UserAuthenticationMiddleware(http.HandlerFunc(gpx.List))).Methods("GET")

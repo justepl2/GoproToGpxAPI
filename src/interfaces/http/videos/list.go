@@ -12,7 +12,9 @@ import (
 func List(w http.ResponseWriter, r *http.Request) {
 	fmt.Println("endpoint GET /videos called")
 
-	videos, err := application.ListVideos()
+	userIdStr := r.Context().Value("userId").(string)
+
+	videos, err := application.ListVideosByUserId(userIdStr)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
