@@ -8,8 +8,8 @@ import (
 )
 
 type CreateVideo struct {
-	Name     string `json:"name"`
-	FilePath string `json:"filePath"`
+	Name     string `json:"name" example:"video_1.mp4"`
+	FilePath string `json:"filePath" example:"/path/to/video_1.mp4"`
 }
 
 func (cv *CreateVideo) Validate() error {

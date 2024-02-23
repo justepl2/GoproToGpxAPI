@@ -5,12 +5,12 @@ import (
 )
 
 type Video struct {
-	Id          string  `json:"id"`
-	Name        string  `json:"name"`
-	FileName    string  `json:"fileName"`
-	Duration    float64 `json:"duration"`
-	CameraModel string  `json:"cameraModel"`
-	Status      string  `json:"status"`
+	Id          string  `json:"id" example:"5f5e3e4e-3e4e-5f5e-3e4e-5f5e3e4e3e4e"`
+	Name        string  `json:"name" example:"video_1"`
+	FileName    string  `json:"fileName" example:"video_1.bin"`
+	Duration    float64 `json:"duration" example:"10.0"`
+	CameraModel string  `json:"cameraModel" example:"GoPro Hero 8"`
+	Status      string  `json:"status" example:"FromGopro"`
 	Gpx         Gpx     `json:"gpx"`
 }
 

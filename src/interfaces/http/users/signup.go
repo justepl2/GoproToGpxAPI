@@ -11,6 +11,17 @@ import (
 	"github.com/justepl2/gopro_to_gpx_api/tools"
 )
 
+// Signup godoc
+// @Summary Signup a new user
+// @Description Signup a new user
+// @Tags users
+// @Accept  json
+// @Produce  plain
+// @Param user body request.Signup true "User to signup"
+// @Success 201 {object} response.UUIDResponse "OK"
+// @Failure 400 {object} response.Error "Invalid request"
+// @Failure 500 {object} response.Error "Internal server error"
+// @Router /users/signup [post]
 func Signup(w http.ResponseWriter, r *http.Request) {
 	var requestUser request.Signup
 	var user domain.User
@@ -37,5 +48,5 @@ func Signup(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	tools.FormatStrResponseBody(w, http.StatusCreated, user.ID.String())
+	tools.FormatUuidResponseBody(w, http.StatusCreated, user.ID.String())
 }

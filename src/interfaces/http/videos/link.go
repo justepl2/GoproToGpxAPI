@@ -10,15 +10,28 @@ import (
 	"github.com/justepl2/gopro_to_gpx_api/domain"
 	"github.com/justepl2/gopro_to_gpx_api/infrastructure"
 	"github.com/justepl2/gopro_to_gpx_api/interfaces/request"
+	"github.com/justepl2/gopro_to_gpx_api/interfaces/response"
 	"github.com/justepl2/gopro_to_gpx_api/tools"
 )
 
+// Link godoc
+// @Summary Link videos GPX
+// @Description Link videos GPX
+// @Tags videos
+// @Accept  json
+// @Produce  json
+// @Security BearerAuth
+// @Param linkVideos body request.LinkVideos true "Videos to link"
+// @Success 200 {array} response.Gpx "OK"
+// @Failure 400 {object} response.Error "Invalid request"
+// @Failure 500 {object} response.Error "Internal server error"
+// @Router /videos/link [post]
 func Link(w http.ResponseWriter, r *http.Request) {
 	// Get from body the video id to link
 	// should have at least 2 videos
 	var requestLinkVideos request.LinkVideos
 	var gpxStruct domain.GpxStruct
-	var responseGpxs []domain.Gpx
+	var gpxResponses []response.Gpx
 
 	fmt.Println("endpoint POST /videos/link called")
 	decoder := json.NewDecoder(r.Body)
@@ -43,6 +56,8 @@ func Link(w http.ResponseWriter, r *http.Request) {
 
 	// for each gpx
 	for i := 0; i < len(videos)-1; i++ {
+		var gpxResponse response.Gpx
+
 		if videos[i].Gpx == (domain.Gpx{}) || videos[i+1].Gpx == (domain.Gpx{}) {
 			tools.FormatResponseBody(w, http.StatusBadRequest, "given video doesn't contain gpx data, could be a Gopro error")
 			return
@@ -85,10 +100,11 @@ func Link(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 
-		responseGpxs = append(responseGpxs, gpx)
+		gpxResponse.FromDomain(gpx)
+		gpxResponses = append(gpxResponses, gpxResponse)
 	}
 
-	responseJson, err := json.Marshal(responseGpxs)
+	responseJson, err := json.Marshal(gpxResponses)
 	if err != nil {
 		tools.FormatResponseBody(w, http.StatusInternalServerError, err.Error())
 		return

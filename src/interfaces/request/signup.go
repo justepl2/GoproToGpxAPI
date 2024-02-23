@@ -3,11 +3,11 @@ package request
 import "errors"
 
 type Signup struct {
-	Email     string `json:"email"`
-	Username  string `json:"username"`
-	Password  string `json:"password"`
-	FirstName string `json:"firstname"`
-	LastName  string `json:"lastname"`
+	Email     string `json:"email" validate:"required,email" example:"john@doe.com"`
+	Username  string `json:"username" validate:"required" example:"john_doe"`
+	Password  string `json:"password" validate:"required" example:"password123"`
+	FirstName string `json:"firstname" example:"John"`
+	LastName  string `json:"lastname" example:"Doe"`
 }
 
 func (cu *Signup) Validate() error {

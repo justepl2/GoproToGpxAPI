@@ -6,13 +6,13 @@ import (
 )
 
 type Gpx struct {
-	ID          uuid.UUID         `json:"id"`
-	Name        string            `json:"name"`
-	StartCoords map[string]string `json:"startCoords"`
-	EndCoords   map[string]string `json:"endCoords"`
-	S3Location  string            `json:"s3Location"`
-	Type        string            `json:"type"`
-	Status      string            `json:"status"`
+	ID          uuid.UUID         `json:"id" example:"5f5e3e4e-3e4e-5f5e-3e4e-5f5e3e4e3e4e"`
+	Name        string            `json:"name" example:"video_1"`
+	StartCoords map[string]string `json:"startCoords" example:"lat: 0.0, lon: 0.0"`
+	EndCoords   map[string]string `json:"endCoords" example:"lat: 0.0, lon: 0.0"`
+	S3Location  string            `json:"s3Location" example:"s3://bucket/folder/file.gpx"`
+	Type        string            `json:"type" example:"road"`
+	Status      string            `json:"status" example:"FromGopro"`
 }
 
 func (r *Gpx) FromDomain(dgpx domain.Gpx) {
