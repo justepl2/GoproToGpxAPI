@@ -13,6 +13,18 @@ import (
 	"github.com/justepl2/gopro_to_gpx_api/tools"
 )
 
+// CreateFromRaw godoc
+// @Summary Create video from raw file
+// @Description Create video from raw file
+// @Tags videos
+// @Accept  multipart/form-data
+// @Produce  json
+// @Security BearerAuth
+// @Param file formData file true "Video file"
+// @Success 201 {string} string "Created"
+// @Failure 400 {object} response.Error "Invalid request"
+// @Failure 500 {object} response.Error "Internal server error"
+// @Router /videos/raw [post]
 func CreateFromRaw(w http.ResponseWriter, r *http.Request) {
 	var video domain.Video
 

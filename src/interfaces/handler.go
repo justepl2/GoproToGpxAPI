@@ -12,6 +12,7 @@ import (
 	"github.com/justepl2/gopro_to_gpx_api/interfaces/http/ping"
 	"github.com/justepl2/gopro_to_gpx_api/interfaces/http/users"
 	"github.com/justepl2/gopro_to_gpx_api/interfaces/http/videos"
+	httpSwagger "github.com/swaggo/http-swagger"
 )
 
 // Run start server
@@ -29,6 +30,9 @@ func NewRouter() *mux.Router {
 	router := mux.NewRouter()
 	// HealthCheck endpoint
 	router.HandleFunc("/ping", ping.Get).Methods("GET")
+
+	// Documentation endpoint
+	router.PathPrefix("/swagger").Handler(httpSwagger.WrapHandler)
 
 	// Users endpoints
 	router.HandleFunc("/users/signup", users.Signup).Methods("POST")

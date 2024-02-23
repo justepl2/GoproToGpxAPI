@@ -7,9 +7,9 @@ import (
 )
 
 type RawFile struct {
-	Name   string
-	File   []byte
-	UserId uuid.UUID
+	Name   string    `json:"name" validate:"required" example:"video_1.bin"`
+	File   []byte    `json:"file" validate:"required"`
+	UserId uuid.UUID `json:"userId" example:"5f5e3e4e-3e4e-5f5e-3e4e-5f5e3e4e3e4e"`
 }
 
 func (rf *RawFile) Validate() error {
