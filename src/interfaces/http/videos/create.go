@@ -84,15 +84,15 @@ func CreateFromRaw(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	gpx.S3Location = video.UserId.String() + "/" + video.Name + ".gpx"
 	s3 := infrastructure.NewS3FileStorage()
-	err = s3.UploadFiles(video.CameraSerialNumber+"/"+video.Name+".gpx", gpxFileContent)
+	err = s3.UploadFiles(gpx.S3Location, gpxFileContent)
 	if err != nil {
 		tools.FormatResponseBody(w, http.StatusInternalServerError, "Cannot upload gpx file to S3, err : "+err.Error())
 		return
 	}
 
 	// Create GPX on DB
-	gpx.S3Location = video.CameraSerialNumber + "/" + video.FileName + ".gpx"
 	gpx.Status = domain.StatusDone
 	err = application.AddGpx(&gpx)
 	if err != nil {
@@ -101,7 +101,7 @@ func CreateFromRaw(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Create Video on DB
-	video.S3Location = video.UserId.String() + "/" + video.FileName + ".bin"
+	video.S3Location = video.UserId.String() + "/" + video.Name + ".bin"
 	video.Gpx = gpx
 	video.Status = domain.StatusDone
 	err = application.AddVideo(&video)

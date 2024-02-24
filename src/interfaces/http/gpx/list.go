@@ -3,8 +3,14 @@ package gpx
 import (
 	"encoding/json"
 	"fmt"
+	"log"
 	"net/http"
+	"os"
+	"time"
 
+	"github.com/aws/aws-sdk-go/aws"
+	"github.com/aws/aws-sdk-go/aws/session"
+	"github.com/aws/aws-sdk-go/service/s3"
 	"github.com/justepl2/gopro_to_gpx_api/application"
 	"github.com/justepl2/gopro_to_gpx_api/interfaces/response"
 	"github.com/justepl2/gopro_to_gpx_api/tools"
@@ -31,7 +37,23 @@ func List(w http.ResponseWriter, r *http.Request) {
 
 	gpxsResponse := make([]response.Gpx, len(gpxs))
 	for i, gpx := range gpxs {
-		gpxsResponse[i].FromDomain(gpx)
+		sess, _ := session.NewSession(&aws.Config{
+			Region: aws.String(os.Getenv("AWS_REGION"))},
+		)
+
+		svc := s3.New(sess)
+
+		req, _ := svc.GetObjectRequest(&s3.GetObjectInput{
+			Bucket: aws.String(os.Getenv("AWS_S3_BUCKET")),
+			Key:    aws.String(gpx.S3Location),
+		})
+		urlStr, err := req.Presign(15 * time.Minute)
+
+		if err != nil {
+			log.Println("Failed to sign request", err)
+		}
+
+		gpxsResponse[i].FromDomain(gpx, urlStr)
 	}
 
 	w.Header().Set("Content-Type", "application/json")
