@@ -57,6 +57,49 @@ const docTemplate = `{
                 }
             }
         },
+        "/gpx/{id}": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "GPX by ID",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "gpx"
+                ],
+                "summary": "GPX by ID",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "GPX ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/response.Gpx"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal server error",
+                        "schema": {
+                            "$ref": "#/definitions/response.Error"
+                        }
+                    }
+                }
+            }
+        },
         "/users/login": {
             "post": {
                 "description": "Login a user",
@@ -413,9 +456,9 @@ const docTemplate = `{
                     "type": "string",
                     "example": "video_1"
                 },
-                "s3Location": {
+                "presignedURL": {
                     "type": "string",
-                    "example": "s3://bucket/folder/file.gpx"
+                    "example": "https://bucket.s3.region.amazonaws.com/key"
                 },
                 "startCoords": {
                     "type": "object",

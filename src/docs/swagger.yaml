@@ -75,8 +75,8 @@ definitions:
       name:
         example: video_1
         type: string
-      s3Location:
-        example: s3://bucket/folder/file.gpx
+      presignedURL:
+        example: https://bucket.s3.region.amazonaws.com/key
         type: string
       startCoords:
         additionalProperties:
@@ -153,6 +153,33 @@ paths:
       security:
       - BearerAuth: []
       summary: List all GPX
+      tags:
+      - gpx
+  /gpx/{id}:
+    get:
+      consumes:
+      - application/json
+      description: GPX by ID
+      parameters:
+      - description: GPX ID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/response.Gpx'
+        "500":
+          description: Internal server error
+          schema:
+            $ref: '#/definitions/response.Error'
+      security:
+      - BearerAuth: []
+      summary: GPX by ID
       tags:
       - gpx
   /users/login:

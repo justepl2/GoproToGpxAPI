@@ -22,5 +22,5 @@ func (r *Video) FromDomain(video domain.Video) {
 	r.CameraModel = video.CameraModel
 	r.Status = string(video.Status)
 
-	r.Gpx.FromDomain(video.Gpx)
+	r.Gpx.FromDomain(video.Gpx, "")
 }
