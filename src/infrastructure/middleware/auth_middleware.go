@@ -47,3 +47,20 @@ func ValidateTokenMiddleware(next http.Handler) http.Handler {
 		next.ServeHTTP(w, r.WithContext(ctx))
 	})
 }
+
+func LogoutUserMiddleware(next http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		// Get the token from the Authorization header
+		authHeader := r.Header.Get("Authorization")
+		parts := strings.Split(authHeader, " ")
+		if len(parts) != 2 || parts[0] != "Bearer" {
+			http.Error(w, "Invalid token", http.StatusUnauthorized)
+			return
+		}
+
+		ctx := context.WithValue(r.Context(), "token", parts[1])
+
+		// The token is valid, pass the request to the next middleware
+		next.ServeHTTP(w, r.WithContext(ctx))
+	})
+}

@@ -286,6 +286,29 @@ paths:
       summary: Login a user
       tags:
       - users
+  /users/logout:
+    post:
+      description: Logout
+      produces:
+      - text/plain
+      responses:
+        "200":
+          description: OK
+          schema:
+            type: string
+        "400":
+          description: Invalid request
+          schema:
+            $ref: '#/definitions/response.Error'
+        "500":
+          description: Internal server error
+          schema:
+            $ref: '#/definitions/response.Error'
+      security:
+      - BearerAuth: []
+      summary: Logout
+      tags:
+      - users
   /users/reset_password:
     post:
       consumes:

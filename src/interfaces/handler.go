@@ -40,7 +40,7 @@ func NewRouter() *mux.Router {
 	router.HandleFunc("/users/validateMail", users.ValidateMail).Methods("POST")
 	router.HandleFunc("/users/forgot_password", users.ForgotPassword).Methods("POST")
 	router.HandleFunc("/users/reset_password", users.ResetPassword).Methods("POST")
-	router.Handle("/users/logout", middleware.ValidateTokenMiddleware(http.HandlerFunc(users.Logout))).Methods("POST")
+	router.Handle("/users/logout", middleware.LogoutUserMiddleware(http.HandlerFunc(users.Logout))).Methods("POST")
 	router.Handle("/users/refresh", middleware.ValidateTokenMiddleware(http.HandlerFunc(users.Refresh))).Methods("POST")
 
 	// Videos endpoints
