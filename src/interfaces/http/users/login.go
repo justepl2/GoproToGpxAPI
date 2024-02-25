@@ -11,6 +11,7 @@ import (
 	"github.com/aws/aws-sdk-go/aws/session"
 	"github.com/aws/aws-sdk-go/service/cognitoidentityprovider"
 	"github.com/justepl2/gopro_to_gpx_api/interfaces/request"
+	"github.com/justepl2/gopro_to_gpx_api/interfaces/response"
 	"github.com/justepl2/gopro_to_gpx_api/tools"
 )
 
@@ -21,7 +22,7 @@ import (
 // @Accept  json
 // @Produce  plain
 // @Param user body request.Login true "User to login"
-// @Success 200 {string} string "OK"
+// @Success 200 {object} response.Login "OK"
 // @Failure 400 {object} response.Error "Invalid request"
 // @Failure 401 {object} response.Error "Invalid password"
 // @Failure 500 {object} response.Error "Internal server error"
@@ -63,5 +64,14 @@ func Login(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	tools.FormatStrResponseBody(w, http.StatusOK, *result.AuthenticationResult.AccessToken)
+	// Create a new Login response
+	loginResponse := response.Login{
+		AccessToken:  *result.AuthenticationResult.AccessToken,
+		RefreshToken: *result.AuthenticationResult.RefreshToken,
+	}
+
+	// Send the Login response in the HTTP response
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(http.StatusOK)
+	json.NewEncoder(w).Encode(loginResponse)
 }

@@ -174,7 +174,7 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "type": "string"
+                            "$ref": "#/definitions/response.Login"
                         }
                     },
                     "400": {
@@ -213,6 +213,52 @@ const docTemplate = `{
                     "users"
                 ],
                 "summary": "Logout",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    "400": {
+                        "description": "Invalid request",
+                        "schema": {
+                            "$ref": "#/definitions/response.Error"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal server error",
+                        "schema": {
+                            "$ref": "#/definitions/response.Error"
+                        }
+                    }
+                }
+            }
+        },
+        "/users/refresh": {
+            "post": {
+                "description": "Refresh a token",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "text/plain"
+                ],
+                "tags": [
+                    "users"
+                ],
+                "summary": "Refresh a token",
+                "parameters": [
+                    {
+                        "description": "Refresh token",
+                        "name": "user",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/request.RefreshToken"
+                        }
+                    }
+                ],
                 "responses": {
                     "200": {
                         "description": "OK",
@@ -592,6 +638,14 @@ const docTemplate = `{
                 }
             }
         },
+        "request.RefreshToken": {
+            "type": "object",
+            "properties": {
+                "refreshToken": {
+                    "type": "string"
+                }
+            }
+        },
         "request.ResetPassword": {
             "type": "object",
             "required": [
@@ -709,6 +763,19 @@ const docTemplate = `{
                 "type": {
                     "type": "string",
                     "example": "road"
+                }
+            }
+        },
+        "response.Login": {
+            "type": "object",
+            "properties": {
+                "accessToken": {
+                    "type": "string",
+                    "example": "eyJz9sdfsdf..."
+                },
+                "refreshToken": {
+                    "type": "string",
+                    "example": "eyJz9sdfsdf..."
                 }
             }
         },

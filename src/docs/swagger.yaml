@@ -46,6 +46,11 @@ definitions:
     - confirmationCode
     - username
     type: object
+  request.RefreshToken:
+    properties:
+      refreshToken:
+        type: string
+    type: object
   request.ResetPassword:
     properties:
       confirmationKey:
@@ -130,6 +135,15 @@ definitions:
         type: string
       type:
         example: road
+        type: string
+    type: object
+  response.Login:
+    properties:
+      accessToken:
+        example: eyJz9sdfsdf...
+        type: string
+      refreshToken:
+        example: eyJz9sdfsdf...
         type: string
     type: object
   response.UUIDResponse:
@@ -270,7 +284,7 @@ paths:
         "200":
           description: OK
           schema:
-            type: string
+            $ref: '#/definitions/response.Login'
         "400":
           description: Invalid request
           schema:
@@ -307,6 +321,36 @@ paths:
       security:
       - BearerAuth: []
       summary: Logout
+      tags:
+      - users
+  /users/refresh:
+    post:
+      consumes:
+      - application/json
+      description: Refresh a token
+      parameters:
+      - description: Refresh token
+        in: body
+        name: user
+        required: true
+        schema:
+          $ref: '#/definitions/request.RefreshToken'
+      produces:
+      - text/plain
+      responses:
+        "200":
+          description: OK
+          schema:
+            type: string
+        "400":
+          description: Invalid request
+          schema:
+            $ref: '#/definitions/response.Error'
+        "500":
+          description: Internal server error
+          schema:
+            $ref: '#/definitions/response.Error'
+      summary: Refresh a token
       tags:
       - users
   /users/reset_password:
