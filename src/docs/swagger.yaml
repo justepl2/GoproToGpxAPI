@@ -1,0 +1,348 @@
+definitions:
+  request.LinkVideos:
+    properties:
+      terrain:
+        allOf:
+        - $ref: '#/definitions/request.Terrain'
+        example: offroad
+      videoIds:
+        example:
+        - 5f5e3e4e-3e4e-5f5e-3e4e-5f5e3e4e3e4e
+        items:
+          type: string
+        type: array
+    type: object
+  request.Login:
+    properties:
+      email:
+        example: test@test.com
+        type: string
+      password:
+        example: password123
+        type: string
+    required:
+    - email
+    - password
+    type: object
+  request.Signup:
+    properties:
+      email:
+        example: john@doe.com
+        type: string
+      firstname:
+        example: John
+        type: string
+      lastname:
+        example: Doe
+        type: string
+      password:
+        example: password123
+        type: string
+      username:
+        example: john_doe
+        type: string
+    required:
+    - email
+    - password
+    - username
+    type: object
+  request.Terrain:
+    enum:
+    - road
+    - offroad
+    type: string
+    x-enum-varnames:
+    - TerrainRoad
+    - TerrainOffroad
+  response.Error:
+    properties:
+      message:
+        example: error message
+        type: string
+    type: object
+  response.Gpx:
+    properties:
+      endCoords:
+        additionalProperties:
+          type: string
+        example:
+          ' lon': ' 0.0'
+          lat: ' 0.0'
+        type: object
+      id:
+        example: 5f5e3e4e-3e4e-5f5e-3e4e-5f5e3e4e3e4e
+        type: string
+      name:
+        example: video_1
+        type: string
+      presignedURL:
+        example: https://bucket.s3.region.amazonaws.com/key
+        type: string
+      startCoords:
+        additionalProperties:
+          type: string
+        example:
+          ' lon': ' 0.0'
+          lat: ' 0.0'
+        type: object
+      status:
+        example: FromGopro
+        type: string
+      type:
+        example: road
+        type: string
+    type: object
+  response.UUIDResponse:
+    properties:
+      uuid:
+        example: 5f5e3e4e-3e4e-5f5e-3e4e-5f5e3e4e3e4e
+        type: string
+    type: object
+  response.Video:
+    properties:
+      cameraModel:
+        example: GoPro Hero 8
+        type: string
+      duration:
+        example: 10
+        type: number
+      fileName:
+        example: video_1.bin
+        type: string
+      gpx:
+        $ref: '#/definitions/response.Gpx'
+      id:
+        example: 5f5e3e4e-3e4e-5f5e-3e4e-5f5e3e4e3e4e
+        type: string
+      name:
+        example: video_1
+        type: string
+      status:
+        example: FromGopro
+        type: string
+    type: object
+host: localhost:8081
+info:
+  contact:
+    email: contact@mekanull.com
+    name: Mekadev
+    url: https://mekanull.com
+  description: This API extract GPX from Raw vidéo file and manage it.
+  termsOfService: http://swagger.io/terms/
+  title: Gopro GPX Extractor API
+  version: "0.1"
+paths:
+  /gpx:
+    get:
+      consumes:
+      - application/json
+      description: List all GPX
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/response.Gpx'
+            type: array
+        "500":
+          description: Internal server error
+          schema:
+            $ref: '#/definitions/response.Error'
+      security:
+      - BearerAuth: []
+      summary: List all GPX
+      tags:
+      - gpx
+  /gpx/{id}:
+    get:
+      consumes:
+      - application/json
+      description: GPX by ID
+      parameters:
+      - description: GPX ID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/response.Gpx'
+        "500":
+          description: Internal server error
+          schema:
+            $ref: '#/definitions/response.Error'
+      security:
+      - BearerAuth: []
+      summary: GPX by ID
+      tags:
+      - gpx
+  /users/login:
+    post:
+      consumes:
+      - application/json
+      description: Login a user
+      parameters:
+      - description: User to login
+        in: body
+        name: user
+        required: true
+        schema:
+          $ref: '#/definitions/request.Login'
+      produces:
+      - text/plain
+      responses:
+        "200":
+          description: OK
+          schema:
+            type: string
+        "400":
+          description: Invalid request
+          schema:
+            $ref: '#/definitions/response.Error'
+        "401":
+          description: Invalid password
+          schema:
+            $ref: '#/definitions/response.Error'
+        "500":
+          description: Internal server error
+          schema:
+            $ref: '#/definitions/response.Error'
+      summary: Login a user
+      tags:
+      - users
+  /users/signup:
+    post:
+      consumes:
+      - application/json
+      description: Signup a new user
+      parameters:
+      - description: User to signup
+        in: body
+        name: user
+        required: true
+        schema:
+          $ref: '#/definitions/request.Signup'
+      produces:
+      - text/plain
+      responses:
+        "201":
+          description: OK
+          schema:
+            $ref: '#/definitions/response.UUIDResponse'
+        "400":
+          description: Invalid request
+          schema:
+            $ref: '#/definitions/response.Error'
+        "500":
+          description: Internal server error
+          schema:
+            $ref: '#/definitions/response.Error'
+      summary: Signup a new user
+      tags:
+      - users
+  /videos:
+    get:
+      consumes:
+      - application/json
+      description: List all videos by UserID
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/response.Video'
+            type: array
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/response.Error'
+        "500":
+          description: Internal server error
+          schema:
+            $ref: '#/definitions/response.Error'
+      security:
+      - BearerAuth: []
+      summary: List all videos by UserID
+      tags:
+      - videos
+  /videos/link:
+    post:
+      consumes:
+      - application/json
+      description: Link videos GPX
+      parameters:
+      - description: Videos to link
+        in: body
+        name: linkVideos
+        required: true
+        schema:
+          $ref: '#/definitions/request.LinkVideos'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/response.Gpx'
+            type: array
+        "400":
+          description: Invalid request
+          schema:
+            $ref: '#/definitions/response.Error'
+        "500":
+          description: Internal server error
+          schema:
+            $ref: '#/definitions/response.Error'
+      security:
+      - BearerAuth: []
+      summary: Link videos GPX
+      tags:
+      - videos
+  /videos/raw:
+    post:
+      consumes:
+      - multipart/form-data
+      description: Create video from raw file
+      parameters:
+      - description: Video file
+        in: formData
+        name: file
+        required: true
+        type: file
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            type: string
+        "400":
+          description: Invalid request
+          schema:
+            $ref: '#/definitions/response.Error'
+        "500":
+          description: Internal server error
+          schema:
+            $ref: '#/definitions/response.Error'
+      security:
+      - BearerAuth: []
+      summary: Create video from raw file
+      tags:
+      - videos
+schemes:
+- http
+securityDefinitions:
+  BearerAuth:
+    in: header
+    name: Authorization
+    type: apiKey
+swagger: "2.0"

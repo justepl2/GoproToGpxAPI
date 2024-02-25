@@ -2,7 +2,9 @@
 .env.local
 .env.test
 src/.env.test
-docker/
+docker/.localstack
+docker/db_data
+docker/tmp
 .vscode/
 
 src/__debug_bin
@@ -14,3 +16,9 @@ src/infrastructure/http/videos/__debug_bin
 testVideo/
 
 src/assets/gpx_files/
+
+src/GX017107.bin
+
+*.bin
+
+src/test

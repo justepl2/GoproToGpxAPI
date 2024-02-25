@@ -4,8 +4,10 @@ import (
 	"encoding/json"
 	"encoding/xml"
 	"fmt"
+	"io/ioutil"
 	"os"
 	"os/exec"
+	"path/filepath"
 	"strconv"
 	"strings"
 	"time"
@@ -37,15 +39,24 @@ type Video struct {
 	S3Location         string    `gorm:"column:s3_location"`
 	Status             Status    `gorm:"column:status"`
 	GpxID              uuid.UUID
-	Gpx                Gpx `gorm:"constraint:OnUpdate:CASCADE,OnDelete:CASCADE;"`
-	CreatedAt          time.Time
-	UpdatedAt          time.Time
+	UserId             uuid.UUID      `gorm:"column:user_id"`
+	Gpx                Gpx            `gorm:"constraint:OnUpdate:CASCADE,OnDelete:CASCADE;"`
+	CreatedAt          time.Time      `gorm:"column:created_at"`
+	UpdatedAt          time.Time      `gorm:"column:updated_at"`
 	DeletedAt          gorm.DeletedAt `gorm:"index"`
 }
 
 func (dv *Video) FromRequest(rv request.CreateVideo) {
 	dv.Name = rv.Name
 	dv.FilePath = rv.FilePath
+}
+
+func (dv *Video) FromRawRequest(rf request.RawFile) {
+	dv.Name = strings.TrimSuffix(rf.Name, filepath.Ext(rf.Name))
+	dv.FileName = rf.Name
+	dv.FilePath = os.Getenv("RAW_VIDEO_DEST_DIR") + rf.Name
+	dv.FileType = "bin"
+	dv.UserId = rf.UserId
 }
 
 // get Data from FilePath
@@ -65,7 +76,7 @@ func (dv *Video) FillVideoMetadata() error {
 
 	// Video Information
 	if fileName, ok := data[0]["FileName"].(string); ok {
-		dv.FileName = strings.Trim(fileName, ".MP4")
+		dv.FileName = strings.Trim(fileName, ".bin")
 	}
 
 	if fileType, ok := data[0]["FileTypeExtension"].(string); ok {
@@ -106,19 +117,95 @@ func (dv *Video) FillVideoMetadata() error {
 	return nil
 }
 
-func (dv *Video) ExtractGpxDataFromBinFile() (Gpx, error) {
+func (dv *Video) FillRawMetadata(file []byte) ([]byte, error) {
+	err := ioutil.WriteFile(dv.Name, file, 0644)
+	if err != nil {
+		return nil, err
+	}
+
+	// Use Exiftool CLI to get metadata, try to get Camera Model, Duration and FileName and FileType + MediaUniqueID + CameraSerialNumber
+	cmd := exec.Command("exiftool", "-j", "-Model", "-Duration", "-FileName", "-FileTypeExtension", "-MediaUniqueID", "-CameraSerialNumber", dv.Name)
+	output, err := cmd.Output()
+
+	return output, err
+	// fmt.Println(output)
+	// if err != nil {
+	// 	return err
+	// }
+
+	// // parse output
+	// var data []map[string]interface{}
+	// if err := json.Unmarshal(output, &data); err != nil {
+	// 	return err
+	// }
+
+	// // Video Information
+	// if fileName, ok := data[0]["FileName"].(string); ok {
+	// 	dv.FileName = strings.Trim(fileName, ".MP4")
+	// }
+
+	// if fileType, ok := data[0]["FileTypeExtension"].(string); ok {
+	// 	dv.FileType = fileType
+	// }
+
+	// if duration, ok := data[0]["Duration"].(string); ok {
+	// 	var durationFloat float64
+	// 	if strings.Contains(duration, "s") {
+	// 		duration = strings.Trim(duration, " s")
+	// 		durationFloat, err = strconv.ParseFloat(duration, 32)
+	// 		if err != nil {
+	// 			return err
+	// 		}
+	// 	} else {
+	// 		durationFloat, err = convertDurationToSeconds(duration)
+	// 		if err != nil {
+	// 			return err
+	// 		}
+	// 	}
+
+	// 	dv.Duration = tools.TruncateFloat(durationFloat)
+	// }
+
+	// if mediaUniqueID, ok := data[0]["MediaUniqueID"].(string); ok {
+	// 	dv.MediaUniqueID = mediaUniqueID
+	// }
+
+	// // In future, need to save Camera in independant table
+	// if cameraSerialNumber, ok := data[0]["CameraSerialNumber"].(string); ok {
+	// 	dv.CameraSerialNumber = cameraSerialNumber
+	// }
+
+	// if model, ok := data[0]["Model"].(string); ok {
+	// 	dv.CameraModel = model
+	// }
+
+	// return nil
+}
+
+func (dv *Video) ExtractGpxDataFromBinFile(fileContent []byte) (Gpx, error) {
 	//command : "gopro2gpx -i GOPR0001.bin -a 500 -f 2 -o GOPR0001.gpx"
 	gopro2gpxPath := os.Getenv("GOPRO2GPX_PATH")
-	gpxFilePath := os.Getenv("GPX_FILES_DEST_DIR") + dv.FileName + ".gpx"
-	convertBinToGpx := exec.Command(gopro2gpxPath, "-i", os.Getenv("RAW_VIDEO_DEST_DIR")+dv.FileName+".bin", "-a", "500", "-o", gpxFilePath)
-	err := convertBinToGpx.Run()
+	gpxFilePath := os.Getenv("GPX_FILES_DEST_DIR") + dv.Name + ".gpx"
+	tempFile, err := os.Create(os.Getenv("RAW_VIDEO_DEST_DIR") + dv.FileName)
+	if err != nil {
+		return Gpx{}, fmt.Errorf("error while creating temp file: %w", err)
+	}
+	defer tempFile.Close()
+
+	_, err = tempFile.Write(fileContent)
+	if err != nil {
+		return Gpx{}, fmt.Errorf("error while writing to temp file: %w", err)
+	}
+
+	convertBinToGpx := exec.Command(gopro2gpxPath, "-i", os.Getenv("RAW_VIDEO_DEST_DIR")+dv.FileName, "-a", "500", "-o", gpxFilePath)
+	err = convertBinToGpx.Run()
 	if err != nil {
 		err = fmt.Errorf("error while converting bin to gpx : %w", err)
 		return Gpx{}, err
 	}
 
 	var gpx Gpx
-	gpx.Name = dv.FileName + ".gpx"
+	gpx.Name = dv.Name + ".gpx"
 	gpx.Type = TypeFromGopro
 
 	// Read GPX file

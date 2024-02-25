@@ -1,11 +1,11 @@
 package videos
 
 import (
-	"encoding/json"
-	"fmt"
+	"io"
 	"net/http"
 	"os"
 
+	"github.com/google/uuid"
 	"github.com/justepl2/gopro_to_gpx_api/application"
 	"github.com/justepl2/gopro_to_gpx_api/domain"
 	"github.com/justepl2/gopro_to_gpx_api/infrastructure"
@@ -13,78 +13,86 @@ import (
 	"github.com/justepl2/gopro_to_gpx_api/tools"
 )
 
-func Create(w http.ResponseWriter, r *http.Request) {
-	var requestVideo request.CreateVideo
+// CreateFromRaw godoc
+// @Summary Create video from raw file
+// @Description Create video from raw file
+// @Tags videos
+// @Accept  multipart/form-data
+// @Produce  json
+// @Security BearerAuth
+// @Param file formData file true "Video file"
+// @Success 201 {string} string "Created"
+// @Failure 400 {object} response.Error "Invalid request"
+// @Failure 500 {object} response.Error "Internal server error"
+// @Router /videos/raw [post]
+func CreateFromRaw(w http.ResponseWriter, r *http.Request) {
 	var video domain.Video
 
-	fmt.Println("endpoint POST /videos called")
-	decoder := json.NewDecoder(r.Body)
-	err := decoder.Decode(&requestVideo)
+	// Parse the multipart form in the request
+	err := r.ParseMultipartForm(10 << 20) // Max memory 10MB
 	if err != nil {
-		tools.FormatResponseBody(w, http.StatusBadRequest, "invalid request payload")
+		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
 
-	err = requestVideo.Validate()
+	// Retrieve the file from form data
+	file, fileHeader, err := r.FormFile("file") // "file" is the key of the form-data to be uploaded
 	if err != nil {
-		tools.FormatResponseBody(w, http.StatusBadRequest, err.Error())
+		tools.FormatResponseBody(w, http.StatusBadRequest, "Cannot retrieve file from form-data, err : "+err.Error())
 		return
 	}
+	defer file.Close()
 
-	video.FromRequest(requestVideo)
-
-	// get Video Metadata
-	err = video.FillVideoMetadata()
-	if err != nil {
-		tools.FormatResponseBody(w, http.StatusInternalServerError, "Cannot get video metadata, err : "+err.Error())
-		return
-	}
-
-	// Create Raw Video file
-	err = video.TransformMp4FileToBinFile()
-	if err != nil {
-		tools.FormatResponseBody(w, http.StatusInternalServerError, "Cannot transform video to bin file, err : "+err.Error())
-		return
-	}
-
-	// Push on S3
-	s3 := infrastructure.NewS3FileStorage()
-	filePath := os.Getenv("RAW_VIDEO_DEST_DIR") + video.FileName
-	fileContent, err := os.ReadFile(filePath + ".bin")
+	// Read the file into a byte slice (byte[])
+	fileBytes, err := io.ReadAll(file)
 	if err != nil {
 		tools.FormatResponseBody(w, http.StatusInternalServerError, "Cannot read file, err : "+err.Error())
 		return
 	}
 
-	err = s3.UploadFiles(video.CameraSerialNumber+"/"+video.FileName+".bin", fileContent)
+	// Create a RawFile
+	rawFile := request.RawFile{
+		Name: fileHeader.Filename,
+		File: fileBytes,
+	}
+
+	userIdStr := r.Context().Value("userId").(string)
+	rawFile.UserId, err = uuid.Parse(userIdStr)
 	if err != nil {
-		// if error, update DB with status Error
-		tools.FormatResponseBody(w, http.StatusInternalServerError, "Cannot upload file to S3, err : "+err.Error())
+		tools.FormatResponseBody(w, http.StatusBadRequest, "Invalid user ID")
 		return
 	}
 
-	// Extract GPX Data from Raw Video file
-	gpx, err := video.ExtractGpxDataFromBinFile()
+	rawFile.Validate()
+
+	video.FromRawRequest(rawFile)
+
+	gpx, err := video.ExtractGpxDataFromBinFile(rawFile.File)
 	if err != nil {
 		tools.FormatResponseBody(w, http.StatusInternalServerError, "Cannot extract GPX data from bin file, err : "+err.Error())
 		return
 	}
 
-	// push GPX on S3
-	gpxFileContent, err := os.ReadFile(os.Getenv("GPX_FILES_DEST_DIR") + video.FileName + ".gpx")
 	if err != nil {
 		tools.FormatResponseBody(w, http.StatusInternalServerError, "Cannot read gpx file, err : "+err.Error())
 		return
 	}
 
-	err = s3.UploadFiles(video.CameraSerialNumber+"/"+video.FileName+".gpx", gpxFileContent)
+	gpxFileContent, err := os.ReadFile(os.Getenv("GPX_FILES_DEST_DIR") + video.Name + ".gpx")
+	if err != nil {
+		tools.FormatResponseBody(w, http.StatusInternalServerError, "Cannot read gpx file, err : "+err.Error())
+		return
+	}
+
+	gpx.S3Location = video.UserId.String() + "/" + video.Name + ".gpx"
+	s3 := infrastructure.NewS3FileStorage()
+	err = s3.UploadFiles(gpx.S3Location, gpxFileContent)
 	if err != nil {
 		tools.FormatResponseBody(w, http.StatusInternalServerError, "Cannot upload gpx file to S3, err : "+err.Error())
 		return
 	}
 
 	// Create GPX on DB
-	gpx.S3Location = video.CameraSerialNumber + "/" + video.FileName + ".gpx"
 	gpx.Status = domain.StatusDone
 	err = application.AddGpx(&gpx)
 	if err != nil {
@@ -93,7 +101,7 @@ func Create(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Create Video on DB
-	video.S3Location = video.CameraSerialNumber + "/" + video.FileName + ".bin"
+	video.S3Location = video.UserId.String() + "/" + video.Name + ".bin"
 	video.Gpx = gpx
 	video.Status = domain.StatusDone
 	err = application.AddVideo(&video)
@@ -103,6 +111,10 @@ func Create(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Delete Raw Video file
-	tools.DeleteTempFiles(video.FileName)
-	tools.FormatResponseBody(w, http.StatusCreated, video.ID.String())
+	err = tools.DeleteTempFiles(video.Name)
+	if err != nil {
+		tools.FormatResponseBody(w, http.StatusInternalServerError, "Cannot delete temp files, err : "+err.Error())
+	}
+
+	tools.FormatStrResponseBody(w, http.StatusCreated, video.ID.String())
 }

@@ -10,8 +10,8 @@ const (
 )
 
 type LinkVideos struct {
-	VideoIds []string `json:"videoIds"`
-	Terrain  Terrain  `json:"terrain"`
+	VideoIds []string `json:"videoIds" example:"5f5e3e4e-3e4e-5f5e-3e4e-5f5e3e4e3e4e"`
+	Terrain  Terrain  `json:"terrain" example:"offroad"`
 }
 
 func (lv *LinkVideos) Validate() error {

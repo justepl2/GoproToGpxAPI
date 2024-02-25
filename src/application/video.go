@@ -39,7 +39,7 @@ func GetVideosByIds(ids []string) ([]domain.Video, error) {
 	return repo.FindByIds(ids)
 }
 
-func ListVideos() ([]domain.Video, error) {
+func ListVideosByUserId(userId string) ([]domain.Video, error) {
 	conn, err := config.ConnectDB()
 	if err != nil {
 		return nil, err
@@ -47,5 +47,5 @@ func ListVideos() ([]domain.Video, error) {
 
 	repo := db.NewVideoRepository(conn)
 
-	return repo.FindAll()
+	return repo.FindByUserId(userId)
 }
