@@ -1,6 +1,10 @@
 package request
 
-import "errors"
+import (
+	"errors"
+
+	"github.com/go-playground/validator/v10"
+)
 
 type MailValidation struct {
 	Username         string `json:"username" validate:"required" example:"john_doe"`
@@ -8,6 +12,12 @@ type MailValidation struct {
 }
 
 func (mv *MailValidation) Validate() error {
+	validate := validator.New()
+	err := validate.Struct(mv)
+	if err != nil {
+		return err
+	}
+
 	if mv.Username == "" {
 		return errors.New("username is required")
 	}

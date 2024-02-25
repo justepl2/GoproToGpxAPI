@@ -3,16 +3,23 @@ package request
 import (
 	"errors"
 
+	"github.com/go-playground/validator/v10"
 	"github.com/google/uuid"
 )
 
 type RawFile struct {
 	Name   string    `json:"name" validate:"required" example:"video_1.bin"`
 	File   []byte    `json:"file" validate:"required"`
-	UserId uuid.UUID `json:"userId" example:"5f5e3e4e-3e4e-5f5e-3e4e-5f5e3e4e3e4e"`
+	UserId uuid.UUID `json:"userId" valide:"required" example:"5f5e3e4e-3e4e-5f5e-3e4e-5f5e3e4e3e4e"`
 }
 
 func (rf *RawFile) Validate() error {
+	validate := validator.New()
+	err := validate.Struct(rf)
+	if err != nil {
+		return err
+	}
+
 	if rf.Name == "" {
 		return errors.New("name is required")
 	}

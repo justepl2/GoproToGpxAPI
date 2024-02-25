@@ -1,4 +1,12 @@
 definitions:
+  request.ForgotPassword:
+    properties:
+      email:
+        example: test@test.com
+        type: string
+    required:
+    - email
+    type: object
   request.LinkVideos:
     properties:
       terrain:
@@ -11,6 +19,8 @@ definitions:
         items:
           type: string
         type: array
+    required:
+    - videoIds
     type: object
   request.Login:
     properties:
@@ -18,7 +28,7 @@ definitions:
         example: test@test.com
         type: string
       password:
-        example: password123
+        example: Password123.
         type: string
     required:
     - email
@@ -35,6 +45,21 @@ definitions:
     required:
     - confirmationCode
     - username
+    type: object
+  request.ResetPassword:
+    properties:
+      confirmationKey:
+        example: "123456"
+        type: string
+      email:
+        type: string
+      newPassword:
+        example: Password123.
+        type: string
+    required:
+    - confirmationKey
+    - email
+    - newPassword
     type: object
   request.Signup:
     properties:
@@ -197,6 +222,36 @@ paths:
       summary: GPX by ID
       tags:
       - gpx
+  /users/forgot_password:
+    post:
+      consumes:
+      - application/json
+      description: Send a password reset email
+      parameters:
+      - description: User to send password reset email
+        in: body
+        name: user
+        required: true
+        schema:
+          $ref: '#/definitions/request.ForgotPassword'
+      produces:
+      - text/plain
+      responses:
+        "200":
+          description: OK
+          schema:
+            type: string
+        "400":
+          description: Invalid request
+          schema:
+            $ref: '#/definitions/response.Error'
+        "500":
+          description: Internal server error
+          schema:
+            $ref: '#/definitions/response.Error'
+      summary: Send a password reset email
+      tags:
+      - users
   /users/login:
     post:
       consumes:
@@ -229,6 +284,36 @@ paths:
           schema:
             $ref: '#/definitions/response.Error'
       summary: Login a user
+      tags:
+      - users
+  /users/reset_password:
+    post:
+      consumes:
+      - application/json
+      description: Reset a user's password
+      parameters:
+      - description: User to reset password
+        in: body
+        name: user
+        required: true
+        schema:
+          $ref: '#/definitions/request.ResetPassword'
+      produces:
+      - text/plain
+      responses:
+        "200":
+          description: OK
+          schema:
+            type: string
+        "400":
+          description: Invalid request
+          schema:
+            $ref: '#/definitions/response.Error'
+        "500":
+          description: Internal server error
+          schema:
+            $ref: '#/definitions/response.Error'
+      summary: Reset a user's password
       tags:
       - users
   /users/signup:

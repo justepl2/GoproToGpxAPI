@@ -1,6 +1,10 @@
 package request
 
-import "errors"
+import (
+	"errors"
+
+	"github.com/go-playground/validator/v10"
+)
 
 type Signup struct {
 	Email       string `json:"email" validate:"required,email" example:"john@doe.com"`
@@ -8,10 +12,16 @@ type Signup struct {
 	Password    string `json:"password" validate:"required" example:"password123"`
 	FirstName   string `json:"firstname" example:"John"`
 	LastName    string `json:"lastname" example:"Doe"`
-	PhoneNumber string `json:"phonenumber" example:"+1234567890"`
+	PhoneNumber string `json:"phonenumber" validate:"e164" example:"+1234567890"`
 }
 
 func (cu *Signup) Validate() error {
+	validate := validator.New()
+	err := validate.Struct(cu)
+	if err != nil {
+		return err
+	}
+
 	if cu.Email == "" {
 		return errors.New("email is required")
 	}
