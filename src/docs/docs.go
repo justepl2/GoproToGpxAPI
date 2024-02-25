@@ -198,6 +198,52 @@ const docTemplate = `{
                 }
             }
         },
+        "/users/validateMail": {
+            "post": {
+                "description": "Validate mail",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "text/plain"
+                ],
+                "tags": [
+                    "users"
+                ],
+                "summary": "Validate mail",
+                "parameters": [
+                    {
+                        "description": "Mail validation",
+                        "name": "mailValidation",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/request.MailValidation"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    "400": {
+                        "description": "Invalid request",
+                        "schema": {
+                            "$ref": "#/definitions/response.Error"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal server error",
+                        "schema": {
+                            "$ref": "#/definitions/response.Error"
+                        }
+                    }
+                }
+            }
+        },
         "/videos": {
             "get": {
                 "security": [
@@ -385,6 +431,23 @@ const docTemplate = `{
                 }
             }
         },
+        "request.MailValidation": {
+            "type": "object",
+            "required": [
+                "confirmationCode",
+                "username"
+            ],
+            "properties": {
+                "confirmationCode": {
+                    "type": "string",
+                    "example": "123456"
+                },
+                "username": {
+                    "type": "string",
+                    "example": "john_doe"
+                }
+            }
+        },
         "request.Signup": {
             "type": "object",
             "required": [
@@ -408,6 +471,10 @@ const docTemplate = `{
                 "password": {
                     "type": "string",
                     "example": "password123"
+                },
+                "phonenumber": {
+                    "type": "string",
+                    "example": "+1234567890"
                 },
                 "username": {
                     "type": "string",
@@ -534,7 +601,7 @@ const docTemplate = `{
 // SwaggerInfo holds exported Swagger Info so clients can modify it
 var SwaggerInfo = &swag.Spec{
 	Version:          "0.1",
-	Host:             "localhost:8081",
+	Host:             "localhost:8080",
 	BasePath:         "",
 	Schemes:          []string{"http"},
 	Title:            "Gopro GPX Extractor API",

@@ -24,6 +24,18 @@ definitions:
     - email
     - password
     type: object
+  request.MailValidation:
+    properties:
+      confirmationCode:
+        example: "123456"
+        type: string
+      username:
+        example: john_doe
+        type: string
+    required:
+    - confirmationCode
+    - username
+    type: object
   request.Signup:
     properties:
       email:
@@ -37,6 +49,9 @@ definitions:
         type: string
       password:
         example: password123
+        type: string
+      phonenumber:
+        example: "+1234567890"
         type: string
       username:
         example: john_doe
@@ -121,7 +136,7 @@ definitions:
         example: FromGopro
         type: string
     type: object
-host: localhost:8081
+host: localhost:8080
 info:
   contact:
     email: contact@mekanull.com
@@ -244,6 +259,36 @@ paths:
           schema:
             $ref: '#/definitions/response.Error'
       summary: Signup a new user
+      tags:
+      - users
+  /users/validateMail:
+    post:
+      consumes:
+      - application/json
+      description: Validate mail
+      parameters:
+      - description: Mail validation
+        in: body
+        name: mailValidation
+        required: true
+        schema:
+          $ref: '#/definitions/request.MailValidation'
+      produces:
+      - text/plain
+      responses:
+        "200":
+          description: OK
+          schema:
+            type: string
+        "400":
+          description: Invalid request
+          schema:
+            $ref: '#/definitions/response.Error'
+        "500":
+          description: Internal server error
+          schema:
+            $ref: '#/definitions/response.Error'
+      summary: Validate mail
       tags:
       - users
   /videos:

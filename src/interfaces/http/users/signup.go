@@ -4,9 +4,11 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
+	"os"
 
-	"github.com/justepl2/gopro_to_gpx_api/application"
-	"github.com/justepl2/gopro_to_gpx_api/domain"
+	"github.com/aws/aws-sdk-go/aws"
+	"github.com/aws/aws-sdk-go/aws/session"
+	"github.com/aws/aws-sdk-go/service/cognitoidentityprovider"
 	"github.com/justepl2/gopro_to_gpx_api/interfaces/request"
 	"github.com/justepl2/gopro_to_gpx_api/tools"
 )
@@ -24,7 +26,6 @@ import (
 // @Router /users/signup [post]
 func Signup(w http.ResponseWriter, r *http.Request) {
 	var requestUser request.Signup
-	var user domain.User
 
 	fmt.Println("endpoint POST /users/signup called")
 	decoder := json.NewDecoder(r.Body)
@@ -38,15 +39,47 @@ func Signup(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if err := user.FromRequest(requestUser); err != nil {
+	// if err := application.AddUser(&user); err != nil {
+	// 	tools.FormatResponseBody(w, http.StatusInternalServerError, "Cannot create user, err : "+err.Error())
+	// 	return
+	// }
+
+	sess, _ := session.NewSession(&aws.Config{
+		Region: aws.String(os.Getenv("AWS_REGION"))},
+	)
+
+	svc := cognitoidentityprovider.New(sess)
+
+	input := &cognitoidentityprovider.SignUpInput{
+		ClientId: aws.String(os.Getenv("AWS_COGNITO_CLIENT_ID")),
+		Password: aws.String(requestUser.Password),
+		Username: aws.String(requestUser.Username),
+		UserAttributes: []*cognitoidentityprovider.AttributeType{
+			{
+				Name:  aws.String("email"),
+				Value: aws.String(requestUser.Email),
+			},
+			{
+				Name:  aws.String("given_name"),
+				Value: aws.String(requestUser.FirstName),
+			},
+			{
+				Name:  aws.String("family_name"),
+				Value: aws.String(requestUser.LastName),
+			},
+			{
+				Name:  aws.String("phone_number"),
+				Value: aws.String(requestUser.PhoneNumber),
+			},
+		},
+	}
+
+	_, err := svc.SignUp(input)
+
+	if err != nil {
 		tools.FormatResponseBody(w, http.StatusInternalServerError, "Cannot create user, err : "+err.Error())
 		return
 	}
 
-	if err := application.AddUser(&user); err != nil {
-		tools.FormatResponseBody(w, http.StatusInternalServerError, "Cannot create user, err : "+err.Error())
-		return
-	}
-
-	tools.FormatUuidResponseBody(w, http.StatusCreated, user.ID.String())
+	tools.FormatEmptyResponseBody(w, http.StatusCreated)
 }

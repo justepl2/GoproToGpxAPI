@@ -5,6 +5,12 @@ import (
 	"net/http"
 )
 
+func FormatEmptyResponseBody(w http.ResponseWriter, statusCode int) {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(statusCode)
+	w.Write([]byte(`{}`))
+}
+
 func FormatResponseBody(w http.ResponseWriter, statusCode int, message string) {
 	response := map[string]string{"message": message}
 
