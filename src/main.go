@@ -20,7 +20,7 @@ import (
 // @contact.url https://mekanull.com
 // @contact.email contact@mekanull.com
 
-// @host localhost:8081
+// @host localhost:8080
 
 // @schemes http
 // @securityDefinitions.apikey BearerAuth

@@ -3,11 +3,15 @@ package users
 import (
 	"encoding/json"
 	"fmt"
+	"log"
 	"net/http"
+	"os"
 
-	"github.com/justepl2/gopro_to_gpx_api/application"
-	"github.com/justepl2/gopro_to_gpx_api/domain"
+	"github.com/aws/aws-sdk-go/aws"
+	"github.com/aws/aws-sdk-go/aws/session"
+	"github.com/aws/aws-sdk-go/service/cognitoidentityprovider"
 	"github.com/justepl2/gopro_to_gpx_api/interfaces/request"
+	"github.com/justepl2/gopro_to_gpx_api/interfaces/response"
 	"github.com/justepl2/gopro_to_gpx_api/tools"
 )
 
@@ -18,7 +22,7 @@ import (
 // @Accept  json
 // @Produce  plain
 // @Param user body request.Login true "User to login"
-// @Success 200 {string} string "OK"
+// @Success 200 {object} response.Login "OK"
 // @Failure 400 {object} response.Error "Invalid request"
 // @Failure 401 {object} response.Error "Invalid password"
 // @Failure 500 {object} response.Error "Internal server error"
@@ -38,22 +42,36 @@ func Login(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	user, err := application.GetUserByEmail(requestUser.Email)
+	sess, _ := session.NewSession(&aws.Config{
+		Region: aws.String(os.Getenv("AWS_REGION"))},
+	)
+
+	svc := cognitoidentityprovider.New(sess)
+
+	input := &cognitoidentityprovider.InitiateAuthInput{
+		AuthFlow: aws.String("USER_PASSWORD_AUTH"),
+		AuthParameters: map[string]*string{
+			"USERNAME": aws.String(requestUser.Email),
+			"PASSWORD": aws.String(requestUser.Password),
+		},
+		ClientId: aws.String(os.Getenv("AWS_COGNITO_CLIENT_ID")),
+	}
+
+	result, err := svc.InitiateAuth(input)
+
 	if err != nil {
-		tools.FormatResponseBody(w, http.StatusUnauthorized, "Invalid password")
+		log.Println("Failed to authenticate user", err)
 		return
 	}
 
-	if err = user.CheckPassword(requestUser.Password); err != nil {
-		tools.FormatResponseBody(w, http.StatusUnauthorized, "Invalid password")
-		return
+	// Create a new Login response
+	loginResponse := response.Login{
+		AccessToken:  *result.AuthenticationResult.AccessToken,
+		RefreshToken: *result.AuthenticationResult.RefreshToken,
 	}
 
-	token, err := domain.CreateToken(user)
-	if err != nil {
-		tools.FormatResponseBody(w, http.StatusInternalServerError, "Error while generating token")
-		return
-	}
-
-	tools.FormatStrResponseBody(w, http.StatusOK, token)
+	// Send the Login response in the HTTP response
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(http.StatusOK)
+	json.NewEncoder(w).Encode(loginResponse)
 }

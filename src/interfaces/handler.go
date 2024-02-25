@@ -37,19 +37,20 @@ func NewRouter() *mux.Router {
 	// Users endpoints
 	router.HandleFunc("/users/signup", users.Signup).Methods("POST")
 	router.HandleFunc("/users/login", users.Login).Methods("POST")
-	router.HandleFunc("/users/me", users.Me).Methods("GET")
-	router.Handle("/users/logout", middleware.UserAuthenticationMiddleware(http.HandlerFunc(users.Logout))).Methods("POST")
-	router.Handle("/users/refresh", middleware.UserAuthenticationMiddleware(http.HandlerFunc(users.Refresh))).Methods("POST")
-	router.HandleFunc("/users/forgot-password", users.ForgotPassword).Methods("POST")
+	router.HandleFunc("/users/validateMail", users.ValidateMail).Methods("POST")
+	router.HandleFunc("/users/forgot_password", users.ForgotPassword).Methods("POST")
+	router.HandleFunc("/users/reset_password", users.ResetPassword).Methods("POST")
+	router.HandleFunc("/users/refresh", users.Refresh).Methods("POST")
+	router.Handle("/users/logout", middleware.LogoutUserMiddleware(http.HandlerFunc(users.Logout))).Methods("POST")
 
 	// Videos endpoints
-	router.Handle("/videos", middleware.UserAuthenticationMiddleware(http.HandlerFunc(videos.List))).Methods("GET")
-	router.Handle("/videos/link", middleware.UserAuthenticationMiddleware(http.HandlerFunc(videos.Link))).Methods("POST")
-	router.Handle("/videos/raw", middleware.UserAuthenticationMiddleware(http.HandlerFunc(videos.CreateFromRaw))).Methods("POST")
+	router.Handle("/videos", middleware.ValidateTokenMiddleware(http.HandlerFunc(videos.List))).Methods("GET")
+	router.Handle("/videos/link", middleware.ValidateTokenMiddleware(http.HandlerFunc(videos.Link))).Methods("POST")
+	router.Handle("/videos/raw", middleware.ValidateTokenMiddleware(http.HandlerFunc(videos.CreateFromRaw))).Methods("POST")
 
 	// GPX endpoints
-	router.Handle("/gpx", middleware.UserAuthenticationMiddleware(http.HandlerFunc(gpx.List))).Methods("GET")
-	router.Handle("/gpx/{id}", middleware.UserAuthenticationMiddleware(http.HandlerFunc(gpx.GetById))).Methods("GET")
+	router.Handle("/gpx", middleware.ValidateTokenMiddleware(http.HandlerFunc(gpx.List))).Methods("GET")
+	router.Handle("/gpx/{id}", middleware.ValidateTokenMiddleware(http.HandlerFunc(gpx.GetById))).Methods("GET")
 
 	// Apply the CORS middleware to our top-level router, with the defaults.
 	router.Use(handlers.CORS(

@@ -5,14 +5,22 @@ import (
 	"net/http"
 	"os"
 	"strings"
+
+	"github.com/go-playground/validator/v10"
 )
 
 type CreateVideo struct {
-	Name     string `json:"name" example:"video_1.mp4"`
-	FilePath string `json:"filePath" example:"/path/to/video_1.mp4"`
+	Name     string `json:"name" validate:"required" example:"video_1.mp4"`
+	FilePath string `json:"filePath" validate:"required" example:"/path/to/video_1.mp4"`
 }
 
 func (cv *CreateVideo) Validate() error {
+	validate := validator.New()
+	err := validate.Struct(cv)
+	if err != nil {
+		return err
+	}
+
 	if cv.Name == "" {
 		return errors.New("name is required")
 	}

@@ -100,6 +100,52 @@ const docTemplate = `{
                 }
             }
         },
+        "/users/forgot_password": {
+            "post": {
+                "description": "Send a password reset email",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "text/plain"
+                ],
+                "tags": [
+                    "users"
+                ],
+                "summary": "Send a password reset email",
+                "parameters": [
+                    {
+                        "description": "User to send password reset email",
+                        "name": "user",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/request.ForgotPassword"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    "400": {
+                        "description": "Invalid request",
+                        "schema": {
+                            "$ref": "#/definitions/response.Error"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal server error",
+                        "schema": {
+                            "$ref": "#/definitions/response.Error"
+                        }
+                    }
+                }
+            }
+        },
         "/users/login": {
             "post": {
                 "description": "Login a user",
@@ -128,7 +174,7 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "type": "string"
+                            "$ref": "#/definitions/response.Login"
                         }
                     },
                     "400": {
@@ -139,6 +185,135 @@ const docTemplate = `{
                     },
                     "401": {
                         "description": "Invalid password",
+                        "schema": {
+                            "$ref": "#/definitions/response.Error"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal server error",
+                        "schema": {
+                            "$ref": "#/definitions/response.Error"
+                        }
+                    }
+                }
+            }
+        },
+        "/users/logout": {
+            "post": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Logout",
+                "produces": [
+                    "text/plain"
+                ],
+                "tags": [
+                    "users"
+                ],
+                "summary": "Logout",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    "400": {
+                        "description": "Invalid request",
+                        "schema": {
+                            "$ref": "#/definitions/response.Error"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal server error",
+                        "schema": {
+                            "$ref": "#/definitions/response.Error"
+                        }
+                    }
+                }
+            }
+        },
+        "/users/refresh": {
+            "post": {
+                "description": "Refresh a token",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "text/plain"
+                ],
+                "tags": [
+                    "users"
+                ],
+                "summary": "Refresh a token",
+                "parameters": [
+                    {
+                        "description": "Refresh token",
+                        "name": "user",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/request.RefreshToken"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    "400": {
+                        "description": "Invalid request",
+                        "schema": {
+                            "$ref": "#/definitions/response.Error"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal server error",
+                        "schema": {
+                            "$ref": "#/definitions/response.Error"
+                        }
+                    }
+                }
+            }
+        },
+        "/users/reset_password": {
+            "post": {
+                "description": "Reset a user's password",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "text/plain"
+                ],
+                "tags": [
+                    "users"
+                ],
+                "summary": "Reset a user's password",
+                "parameters": [
+                    {
+                        "description": "User to reset password",
+                        "name": "user",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/request.ResetPassword"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    "400": {
+                        "description": "Invalid request",
                         "schema": {
                             "$ref": "#/definitions/response.Error"
                         }
@@ -181,6 +356,52 @@ const docTemplate = `{
                         "description": "OK",
                         "schema": {
                             "$ref": "#/definitions/response.UUIDResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Invalid request",
+                        "schema": {
+                            "$ref": "#/definitions/response.Error"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal server error",
+                        "schema": {
+                            "$ref": "#/definitions/response.Error"
+                        }
+                    }
+                }
+            }
+        },
+        "/users/validateMail": {
+            "post": {
+                "description": "Validate mail",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "text/plain"
+                ],
+                "tags": [
+                    "users"
+                ],
+                "summary": "Validate mail",
+                "parameters": [
+                    {
+                        "description": "Mail validation",
+                        "name": "mailValidation",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/request.MailValidation"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "string"
                         }
                     },
                     "400": {
@@ -346,8 +567,23 @@ const docTemplate = `{
         }
     },
     "definitions": {
+        "request.ForgotPassword": {
+            "type": "object",
+            "required": [
+                "email"
+            ],
+            "properties": {
+                "email": {
+                    "type": "string",
+                    "example": "test@test.com"
+                }
+            }
+        },
         "request.LinkVideos": {
             "type": "object",
+            "required": [
+                "videoIds"
+            ],
             "properties": {
                 "terrain": {
                     "allOf": [
@@ -381,7 +617,53 @@ const docTemplate = `{
                 },
                 "password": {
                     "type": "string",
-                    "example": "password123"
+                    "example": "Password123."
+                }
+            }
+        },
+        "request.MailValidation": {
+            "type": "object",
+            "required": [
+                "confirmationCode",
+                "username"
+            ],
+            "properties": {
+                "confirmationCode": {
+                    "type": "string",
+                    "example": "123456"
+                },
+                "username": {
+                    "type": "string",
+                    "example": "john_doe"
+                }
+            }
+        },
+        "request.RefreshToken": {
+            "type": "object",
+            "properties": {
+                "refreshToken": {
+                    "type": "string"
+                }
+            }
+        },
+        "request.ResetPassword": {
+            "type": "object",
+            "required": [
+                "confirmationKey",
+                "email",
+                "newPassword"
+            ],
+            "properties": {
+                "confirmationKey": {
+                    "type": "string",
+                    "example": "123456"
+                },
+                "email": {
+                    "type": "string"
+                },
+                "newPassword": {
+                    "type": "string",
+                    "example": "Password123."
                 }
             }
         },
@@ -408,6 +690,10 @@ const docTemplate = `{
                 "password": {
                     "type": "string",
                     "example": "password123"
+                },
+                "phonenumber": {
+                    "type": "string",
+                    "example": "+1234567890"
                 },
                 "username": {
                     "type": "string",
@@ -480,6 +766,19 @@ const docTemplate = `{
                 }
             }
         },
+        "response.Login": {
+            "type": "object",
+            "properties": {
+                "accessToken": {
+                    "type": "string",
+                    "example": "eyJz9sdfsdf..."
+                },
+                "refreshToken": {
+                    "type": "string",
+                    "example": "eyJz9sdfsdf..."
+                }
+            }
+        },
         "response.UUIDResponse": {
             "type": "object",
             "properties": {
@@ -534,7 +833,7 @@ const docTemplate = `{
 // SwaggerInfo holds exported Swagger Info so clients can modify it
 var SwaggerInfo = &swag.Spec{
 	Version:          "0.1",
-	Host:             "localhost:8081",
+	Host:             "localhost:8080",
 	BasePath:         "",
 	Schemes:          []string{"http"},
 	Title:            "Gopro GPX Extractor API",

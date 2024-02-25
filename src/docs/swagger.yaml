@@ -1,4 +1,12 @@
 definitions:
+  request.ForgotPassword:
+    properties:
+      email:
+        example: test@test.com
+        type: string
+    required:
+    - email
+    type: object
   request.LinkVideos:
     properties:
       terrain:
@@ -11,6 +19,8 @@ definitions:
         items:
           type: string
         type: array
+    required:
+    - videoIds
     type: object
   request.Login:
     properties:
@@ -18,11 +28,43 @@ definitions:
         example: test@test.com
         type: string
       password:
-        example: password123
+        example: Password123.
         type: string
     required:
     - email
     - password
+    type: object
+  request.MailValidation:
+    properties:
+      confirmationCode:
+        example: "123456"
+        type: string
+      username:
+        example: john_doe
+        type: string
+    required:
+    - confirmationCode
+    - username
+    type: object
+  request.RefreshToken:
+    properties:
+      refreshToken:
+        type: string
+    type: object
+  request.ResetPassword:
+    properties:
+      confirmationKey:
+        example: "123456"
+        type: string
+      email:
+        type: string
+      newPassword:
+        example: Password123.
+        type: string
+    required:
+    - confirmationKey
+    - email
+    - newPassword
     type: object
   request.Signup:
     properties:
@@ -37,6 +79,9 @@ definitions:
         type: string
       password:
         example: password123
+        type: string
+      phonenumber:
+        example: "+1234567890"
         type: string
       username:
         example: john_doe
@@ -92,6 +137,15 @@ definitions:
         example: road
         type: string
     type: object
+  response.Login:
+    properties:
+      accessToken:
+        example: eyJz9sdfsdf...
+        type: string
+      refreshToken:
+        example: eyJz9sdfsdf...
+        type: string
+    type: object
   response.UUIDResponse:
     properties:
       uuid:
@@ -121,7 +175,7 @@ definitions:
         example: FromGopro
         type: string
     type: object
-host: localhost:8081
+host: localhost:8080
 info:
   contact:
     email: contact@mekanull.com
@@ -182,6 +236,36 @@ paths:
       summary: GPX by ID
       tags:
       - gpx
+  /users/forgot_password:
+    post:
+      consumes:
+      - application/json
+      description: Send a password reset email
+      parameters:
+      - description: User to send password reset email
+        in: body
+        name: user
+        required: true
+        schema:
+          $ref: '#/definitions/request.ForgotPassword'
+      produces:
+      - text/plain
+      responses:
+        "200":
+          description: OK
+          schema:
+            type: string
+        "400":
+          description: Invalid request
+          schema:
+            $ref: '#/definitions/response.Error'
+        "500":
+          description: Internal server error
+          schema:
+            $ref: '#/definitions/response.Error'
+      summary: Send a password reset email
+      tags:
+      - users
   /users/login:
     post:
       consumes:
@@ -200,7 +284,7 @@ paths:
         "200":
           description: OK
           schema:
-            type: string
+            $ref: '#/definitions/response.Login'
         "400":
           description: Invalid request
           schema:
@@ -214,6 +298,89 @@ paths:
           schema:
             $ref: '#/definitions/response.Error'
       summary: Login a user
+      tags:
+      - users
+  /users/logout:
+    post:
+      description: Logout
+      produces:
+      - text/plain
+      responses:
+        "200":
+          description: OK
+          schema:
+            type: string
+        "400":
+          description: Invalid request
+          schema:
+            $ref: '#/definitions/response.Error'
+        "500":
+          description: Internal server error
+          schema:
+            $ref: '#/definitions/response.Error'
+      security:
+      - BearerAuth: []
+      summary: Logout
+      tags:
+      - users
+  /users/refresh:
+    post:
+      consumes:
+      - application/json
+      description: Refresh a token
+      parameters:
+      - description: Refresh token
+        in: body
+        name: user
+        required: true
+        schema:
+          $ref: '#/definitions/request.RefreshToken'
+      produces:
+      - text/plain
+      responses:
+        "200":
+          description: OK
+          schema:
+            type: string
+        "400":
+          description: Invalid request
+          schema:
+            $ref: '#/definitions/response.Error'
+        "500":
+          description: Internal server error
+          schema:
+            $ref: '#/definitions/response.Error'
+      summary: Refresh a token
+      tags:
+      - users
+  /users/reset_password:
+    post:
+      consumes:
+      - application/json
+      description: Reset a user's password
+      parameters:
+      - description: User to reset password
+        in: body
+        name: user
+        required: true
+        schema:
+          $ref: '#/definitions/request.ResetPassword'
+      produces:
+      - text/plain
+      responses:
+        "200":
+          description: OK
+          schema:
+            type: string
+        "400":
+          description: Invalid request
+          schema:
+            $ref: '#/definitions/response.Error'
+        "500":
+          description: Internal server error
+          schema:
+            $ref: '#/definitions/response.Error'
+      summary: Reset a user's password
       tags:
       - users
   /users/signup:
@@ -244,6 +411,36 @@ paths:
           schema:
             $ref: '#/definitions/response.Error'
       summary: Signup a new user
+      tags:
+      - users
+  /users/validateMail:
+    post:
+      consumes:
+      - application/json
+      description: Validate mail
+      parameters:
+      - description: Mail validation
+        in: body
+        name: mailValidation
+        required: true
+        schema:
+          $ref: '#/definitions/request.MailValidation'
+      produces:
+      - text/plain
+      responses:
+        "200":
+          description: OK
+          schema:
+            type: string
+        "400":
+          description: Invalid request
+          schema:
+            $ref: '#/definitions/response.Error'
+        "500":
+          description: Internal server error
+          schema:
+            $ref: '#/definitions/response.Error'
+      summary: Validate mail
       tags:
       - users
   /videos:
